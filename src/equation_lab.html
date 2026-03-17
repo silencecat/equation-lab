@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>等式实验室</title>
+  <style>
+    :root {
+      --line: #d8c9ab;
+      --text: #2b2418;
+      --muted: #6c624f;
+      --brand: #116b60;
+      --warm: #bb6b2c;
+      --blue: #1b6383;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.5 "Trebuchet MS", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(150deg, #faf6ed, #ece1cb);
+      min-height: 100vh;
+      overscroll-behavior: none;
+    }
+
+    /* ── 主布局：单列居中，跟随窗口扩展 ── */
+    .app {
+      margin: 0 auto; padding: 10px 14px 28px;
+      display: grid; gap: 10px;
+    }
+
+    /* ── 顶栏 ── */
+    .topbar {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .menu-btn {
+      width: 44px; height: 44px; border: 1px solid var(--line);
+      border-radius: 14px; background: rgba(255,250,240,.92);
+      font-size: 20px; cursor: pointer; flex-shrink: 0;
+      display: grid; place-items: center; color: var(--text);
+    }
+    .topbar-info { flex: 1; min-width: 0; }
+    .topbar-title {
+      font-size: 17px; font-weight: 800; line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .topbar-sub {
+      font-size: 12px; color: var(--muted); line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .topbar-badge {
+      flex-shrink: 0; padding: 5px 12px;
+      border-radius: 999px; background: rgba(255,250,240,.92);
+      border: 1px solid var(--line); font: 700 12px/1.3 sans-serif;
+      color: var(--muted); white-space: nowrap;
+    }
+
+    /* ── 目标横幅 ── */
+    .goal-banner {
+      text-align: center; padding: 9px 16px;
+      border-radius: 999px; font-weight: 800; font-size: 14px;
+      background: #daf0ea; color: #145b50;
+    }
+
+    /* ── 故事卡片（应用题） ── */
+    .story-card {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 12px 16px; border-radius: 16px;
+      background: linear-gradient(135deg, #fef9ef, #fdf3e0);
+      border: 1.5px solid #f0d9a8;
+      font-size: 14px; line-height: 1.65; color: #4a3f2f;
+      box-shadow: 0 2px 8px rgba(180,150,100,.12);
+      animation: storyFadeIn .35s ease-out;
+    }
+    .story-icon {
+      flex-shrink: 0; font-size: 20px; margin-top: 1px;
+    }
+    .story-text {
+      flex: 1; min-width: 0;
+    }
+    @keyframes storyFadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── 等式棋盘 ── */
+    .eq-area {
+      padding: 14px; border: 1px solid var(--line); border-radius: 22px;
+      background: linear-gradient(180deg, #fffdf8, #f8f0df);
+    }
+    .board {
+      display: grid; grid-template-columns: 1fr 72px 1fr; gap: 8px;
+      align-items: center;
+    }
+    .half {
+      min-height: 150px; border: 1px solid #e6d8bd; border-radius: 18px;
+      background: rgba(255,255,255,.74); padding: 12px;
+      display: grid; grid-template-rows: auto 1fr; gap: 8px;
+      transition: min-height .3s ease;
+    }
+    .cap {
+      display: flex; justify-content: space-between;
+      color: var(--muted); font-size: 11px; text-transform: uppercase;
+    }
+    .row {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      align-content: flex-start; align-items: center;
+      min-height: 80px;
+    }
+    .eqs { text-align: center; }
+    .eqbox {
+      width: 64px; height: 64px; border-radius: 20px;
+      border: 1px solid #d7ccb4; background: #fff;
+      display: grid; place-items: center;
+      font-size: 32px; font-weight: 900; color: var(--brand); margin: 0 auto;
+      transition: all .2s;
+    }
+    .eqbox.on {
+      border-color: var(--brand); background: #effaf6;
+      box-shadow: 0 0 18px rgba(17,107,96,.45);
+      transform: scale(1.12);
+    }
+
+    /* ── 可拖拽卡片 ── */
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 14px; border-radius: 16px;
+      border: 1px solid #dccfb6; background: #fff;
+      font: bold 22px/1 "Consolas", monospace;
+      cursor: grab; user-select: none; touch-action: none;
+      transition: opacity .18s, transform .18s;
+    }
+    .chip.drag { opacity: .28; transform: scale(.92); }
+    .chip.x { color: var(--blue); background: #eef7fb; border-color: #bfd9e7; }
+    .chip.n { color: var(--warm); background: #fff4e7; border-color: #e5caab; }
+    .chip em.story-label,
+    .group em.story-label {
+      font: 600 10px/1 sans-serif; color: #b07830; font-style: normal;
+    }
+    .group em.story-label {
+      display: block; margin-top: 2px; text-align: center;
+    }
+
+    /* ── 分数上下排列 ── */
+    .frac {
+      display: inline-flex; flex-direction: column; align-items: center;
+      vertical-align: middle; text-align: center;
+      font-size: .72em; line-height: 1.15; margin: 0 1px;
+    }
+    .frac-d { border-top: 1.5px solid currentColor; padding-top: 1px; min-width: 1.1em; }
+    .frac-n { min-width: 1.1em; }
+
+    /* ── 卡片图例 ── */
+    .card-legend {
+      display: flex; justify-content: center; gap: 16px;
+      margin-top: 8px; padding: 4px 0;
+    }
+    .legend-item {
+      display: inline-flex; align-items: center; gap: 4px;
+      font: 600 11px/1 sans-serif; color: var(--muted);
+    }
+    .legend-swatch {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 6px;
+      font: bold 12px/1 "Consolas", monospace;
+      border: 1px solid;
+    }
+    .legend-swatch.x {
+      color: var(--blue); background: #eef7fb; border-color: #bfd9e7;
+    }
+    .legend-swatch.n {
+      color: var(--warm); background: #fff4e7; border-color: #e5caab;
+    }
+
+    /* ── 列方程工具箱 ── */
+    .build-tray {
+      margin-top: 10px; padding: 10px 12px;
+      border: 2px dashed #d5c9b0; border-radius: 14px;
+      background: rgba(255,248,230,.6);
+      text-align: center;
+      transition: background .2s, border-color .2s;
+    }
+    .build-tray.on {
+      background: rgba(220,80,60,.06);
+      border-color: rgba(220,80,60,.5);
+    }
+    .build-tray-label {
+      font: 600 11px/1 sans-serif; color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .build-tray-cards {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+    }
+    .build-tray-hint {
+      font-size: 10px; color: var(--muted); margin-top: 6px; opacity: .7;
+    }
+    .tray-chip {
+      cursor: grab;
+    }
+    .tray-chip.pos { border-color: #7ec49b; background: #edf8f1; }
+    .tray-chip.neg { border-color: #d09090; background: #faf0f0; }
+    .tray-chip.placed {
+      opacity: .18; pointer-events: none; transform: scale(.92);
+    }
+
+    .drag-float {
+      position: fixed; left: 0; top: 0; z-index: 9999;
+      pointer-events: none; opacity: .94;
+      box-shadow: 0 12px 24px rgba(90,66,24,.16);
+    }
+
+    /* ── 插槽落点 ── */
+    .slot {
+      width: 20px; height: 56px; border-radius: 999px;
+      border: 1px dashed transparent;
+      transition: border-color .15s, background .15s;
+    }
+    .slot.on {
+      border-color: rgba(17,107,96,.45);
+      background: rgba(17,107,96,.08);
+    }
+
+    /* ── 括号组：内联数学表达式风格 ── */
+    .group {
+      display: inline-flex; align-items: center; gap: 0;
+      padding: 8px 12px; border-radius: 16px;
+      border: 1px solid #c9ddd4; background: #eef9f5;
+      font: bold 22px/1 "Consolas", monospace;
+      color: var(--brand); cursor: default;
+      user-select: none; touch-action: none;
+    }
+    .gmul {
+      color: var(--brand);
+    }
+    .gparen {
+      color: var(--brand); font-weight: 900;
+    }
+    .ginner {
+      display: inline-flex; align-items: baseline; gap: 0;
+      padding: 0 2px;
+      border: 1px dashed rgba(17,107,96,.35); border-radius: 8px;
+      background: rgba(255,255,255,.5);
+      min-width: 24px; min-height: 28px;
+      transition: background .15s;
+    }
+    .ginner.on { background: rgba(17,107,96,.15); }
+    .gterm {
+      position: relative;
+      display: inline-block;
+      padding: 2px 3px;
+    }
+    .gterm.x { color: var(--blue); }
+    .gterm.n { color: var(--warm); }
+    /* 展开预览：项目发光 */
+    .gterm.expand-preview-glow {
+      background: rgba(255,180,0,.15);
+      border-radius: 6px;
+      transition: background .15s;
+    }
+    /* 展开预览：×N 标签 */
+    @keyframes expandPreviewIn {
+      0%   { opacity: 0; transform: translateX(-50%) scale(.4); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1); }
+    }
+    .expand-preview-badge {
+      position: absolute;
+      left: 50%; top: -18px;
+      transform: translateX(-50%);
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand), #0d8a6f);
+      color: #fff;
+      font: bold 11px/1.4 sans-serif;
+      white-space: nowrap;
+      z-index: 5;
+      pointer-events: none;
+      box-shadow: 0 1px 6px rgba(17,107,96,.3);
+      animation: expandPreviewIn .25s cubic-bezier(.22,1,.36,1) both;
+    }
+    .gexpand {
+      margin-left: 8px;
+      border: 1px solid rgba(17,107,96,.25); background: #fff;
+      padding: 4px 8px; border-radius: 999px; color: #145b50;
+      font: 700 11px/1.1 sans-serif; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .gexpand:hover { background: #effaf6; }
+    .hint { font-size: 11px; color: var(--muted); }
+
+    /* ── 教练气泡 ── */
+    .coach-bubble {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 12px 14px; border-radius: 18px;
+      background: #f4f8ff; border: 1px solid #d2deef;
+    }
+    .coach-bubble.solved {
+      background: #effaf6; border-color: #cfe7de;
+    }
+    .coach-icon {
+      flex-shrink: 0; font-size: 22px; line-height: 1;
+      margin-top: 2px;
+    }
+    .coach-body { font-size: 14px; line-height: 1.5; flex: 1; }
+    .coach-body strong { display: block; margin-bottom: 2px; color: var(--brand); }
+
+    /* ── 状态提示条 ── */
+    .status-toast {
+      padding: 10px 14px; border-radius: 14px; font-size: 13px;
+      border: 1px solid #e4d7be; background: rgba(255,255,255,.7);
+      text-align: center;
+    }
+    .status-toast.ok { background: #effaf6; border-color: #cfe7de; }
+    .status-toast.err { background: #fff4f1; border-color: #f0d0c9; }
+    .status-toast.hide { display: none; }
+
+    /* ── 迷你工具栏 ── */
+    .tool-row {
+      display: flex; gap: 6px; justify-content: center;
+      align-items: center; margin-top: 10px; padding: 10px 0 2px;
+      border-top: 1px dashed #e6d8bd;
+    }
+    .tool-label {
+      font: 700 12px/1 sans-serif; color: var(--muted);
+      white-space: nowrap; margin-right: 2px;
+    }
+    .tool-input {
+      width: 52px; text-align: center; border: 1px solid var(--line);
+      border-radius: 10px; padding: 8px 4px; background: #fff;
+      font: bold 16px/1 Consolas, monospace; color: var(--text);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .tool-op {
+      width: 40px; height: 40px; border-radius: 12px;
+      border: 1.5px solid var(--line); background: #fff;
+      font: bold 18px/1 sans-serif; color: var(--text);
+      cursor: grab; display: grid; place-items: center;
+      transition: all .15s; touch-action: none;
+    }
+    .tool-op:hover { border-color: var(--brand); color: var(--brand); }
+    .tool-op:active { background: #effaf6; cursor: grabbing; }
+    .tool-op.drag { opacity: .4; transform: scale(.9); }
+
+    /* ── 提示高亮动画 ── */
+    @keyframes hintPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(17,107,96,.55); }
+      50%      { box-shadow: 0 0 0 8px rgba(17,107,96,.12); }
+    }
+    .hint-glow {
+      animation: hintPulse .9s ease-in-out infinite !important;
+      border-color: var(--brand) !important;
+    }
+    .half.hint-target {
+      background: rgba(17,107,96,.07) !important;
+      border-color: rgba(17,107,96,.4) !important;
+      transition: background .25s, border-color .25s;
+    }
+
+    /* ── Smart Actions 提示按钮 ── */
+    .actions-bar { display: grid; gap: 8px; }
+    .smartrow { display: grid; gap: 8px; }
+    .smartbtn {
+      width: 100%; padding: 14px 16px; border-radius: 16px;
+      border: 2px solid rgba(17,107,96,.18); background: #fff;
+      font: 800 15px/1.3 sans-serif; color: #145b50;
+      cursor: pointer; text-align: center;
+      transition: all .15s;
+    }
+    .smartbtn::before { content: '💡 '; }
+    .smartbtn:hover, .smartbtn:active {
+      background: #effaf6; border-color: var(--brand);
+      transform: scale(1.01);
+    }
+    .smartempty {
+      font-size: 13px; color: var(--muted); text-align: center; padding: 8px;
+    }
+
+    /* ── 底部工具栏 ── */
+    .bottom-bar {
+      display: flex; gap: 8px; padding: 4px 0;
+    }
+    .bottom-bar button {
+      flex: 1; padding: 12px 10px;
+      border: 1px solid var(--line); border-radius: 14px;
+      background: rgba(255,250,240,.92); cursor: pointer;
+      font: 700 13px/1.3 sans-serif; color: var(--text);
+      transition: opacity .15s;
+    }
+    .bottom-bar button:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-next {
+      background: #daf0ea !important; color: #145b50 !important;
+      border-color: #c4ddd4 !important;
+    }
+
+    /* ── 抽屉菜单 ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 8000;
+      background: rgba(30,24,12,.45);
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .drawer {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 320px; max-width: 85vw;
+      background: #fffdf6; padding: 18px;
+      overflow-y: auto; overscroll-behavior: contain;
+      transform: translateX(-100%);
+      transition: transform .25s ease;
+      box-shadow: 4px 0 20px rgba(30,24,12,.12);
+    }
+    .drawer-overlay.open .drawer { transform: translateX(0); }
+    .drawer-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px;
+    }
+    .drawer-head h2 { margin: 0; font-size: 22px; color: var(--brand); }
+    .drawer-x {
+      width: 36px; height: 36px; border: 1px solid var(--line);
+      border-radius: 12px; background: #fff; font-size: 18px;
+      cursor: pointer; display: grid; place-items: center; color: var(--text);
+    }
+    .drawer-desc { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+    .lang-switch {
+      display: flex; gap: 0; border-radius: 999px; overflow: hidden;
+      border: 2px solid var(--brand); margin-bottom: 14px;
+    }
+    .langbtn {
+      flex: 1; border: 0; padding: 8px 14px; cursor: pointer;
+      font: 700 13px/1.2 sans-serif;
+      color: var(--muted); background: #fff;
+      transition: all .2s;
+    }
+    .langbtn.active { background: var(--brand); color: #f5fffc; }
+    .dw-section {
+      margin-bottom: 16px; padding-top: 14px;
+      border-top: 1px solid #ede5d4;
+    }
+    .dw-ttl {
+      font: 700 12px/1 sans-serif; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    /* ── 抽屉中的关卡按钮 ── */
+    .chapter-header {
+      padding: 6px 8px; margin-top: 6px;
+      border-left: 3px solid var(--brand);
+    }
+    .chapter-header strong { display: block; font-size: 12px; color: var(--brand); }
+    .chapter-header small { font-size: 11px; color: var(--muted); }
+    .level {
+      position: relative;
+      width: 100%; border: 1px solid var(--line); background: #fff;
+      padding: 8px 10px; border-radius: 12px; text-align: left; cursor: pointer;
+      margin-bottom: 3px; font-size: 13px;
+    }
+    .level.active { outline: 2px solid rgba(17,107,96,.2); }
+    .level small { display: block; color: var(--muted); font-size: 11px; }
+    .level.cleared::after {
+      content: '✓'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      font-size: 16px; font-weight: 900; color: var(--brand); opacity: .7;
+    }
+
+    /* ── 进度条 ── */
+    .progress-bar {
+      position: relative; height: 24px; border-radius: 999px;
+      background: #f0e8d6; border: 1px solid #e0d3b8;
+      overflow: hidden; margin-bottom: 8px;
+    }
+    .progress-fill {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: linear-gradient(90deg, var(--brand), #1fa88e);
+      border-radius: 999px; transition: width .5s ease;
+    }
+    .progress-text {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; font: 700 11px/1 sans-serif; color: var(--text);
+    }
+    .reset-progress {
+      display: block; margin: 6px auto 0; padding: 4px 12px;
+      border: 1px solid #e0d3b8; border-radius: 999px;
+      background: transparent; color: var(--muted);
+      font: 600 10px/1.3 sans-serif; cursor: pointer;
+      opacity: .5; transition: opacity .2s;
+    }
+    .reset-progress:hover { opacity: 1; }
+
+    /* ── 抽屉中的实验线 ── */
+    .free { display: grid; gap: 6px; }
+    .free input {
+      width: 100%; border: 1px solid var(--line); border-radius: 10px;
+      padding: 8px 10px; background: #fff;
+      font: 14px/1.3 Consolas, monospace; color: var(--text);
+    }
+    .free button {
+      border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
+      background: #daf0ea; color: #145b50; font-weight: 700; cursor: pointer;
+      font-size: 13px;
+    }
+    .samplebar { display: flex; flex-wrap: wrap; gap: 6px; }
+    .samplebar button {
+      border: 1px solid #e1d3b7; background: #fff; border-radius: 999px;
+      padding: 5px 8px; font-size: 11px; cursor: pointer; color: var(--muted);
+    }
+    .rule, .note {
+      font-size: 12px; color: var(--muted);
+      padding-left: 8px; border-left: 3px solid #dbc89f;
+      margin-bottom: 4px;
+    }
+    code {
+      font-family: Consolas, monospace; background: #fff;
+      border: 1px solid #eadfc9; padding: 1px 4px; border-radius: 6px;
+      font-size: 12px;
+    }
+
+    /* ── 动画 ── */
+    @keyframes chipIn {
+      from { opacity: 0; transform: translateY(-10px) scale(.88); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .chip, .group { animation: chipIn .2s ease-out; }
+    .chip.flip-moving { animation: none !important; }
+
+    @keyframes solvePulse {
+      0%   { box-shadow: 0 0 0 0 rgba(17,107,96,.4); }
+      70%  { box-shadow: 0 0 0 18px rgba(17,107,96,0); }
+      100% { box-shadow: 0 0 0 0 rgba(17,107,96,0); }
+    }
+    .solve-celebrate { animation: solvePulse .7s ease-out; }
+    .solve-celebrate .eqbox {
+      border-color: var(--brand); background: #effaf6;
+      box-shadow: 0 0 0 6px rgba(17,107,96,.12);
+      transition: all .3s;
+    }
+
+    /* ── 分步动画 ── */
+    .eq-area.anim-playing {
+      cursor: pointer;
+    }
+    .eq-area.anim-playing .slot { pointer-events: none; }
+    .eq-area.anim-playing .tool-row { pointer-events: none; opacity: .5; }
+    /* 动画期间拑制非动画元素的 chipIn 基础动画，防止无关卡片跳动 */
+    .eq-area.anim-playing .row > .chip,
+    .eq-area.anim-playing .row > .group {
+      animation: none;
+    }
+
+    /* 新项入场（appear 阶段） */
+    @keyframes animAppear {
+      0%   { opacity: 0; transform: scale(.45) translateY(-16px); }
+      60%  { opacity: 1; transform: scale(1.08) translateY(0); }
+      100% { transform: scale(1); }
+    }
+    .anim-new {
+      animation: animAppear .4s ease-out !important;
+      box-shadow: 0 0 12px rgba(17,107,96,.3);
+    }
+
+    /* 移项符号反转反馈（落地后，不用 animation 属性以免与合并动画冲突） */
+    .anim-sign-flip {
+      outline: 3px solid #ff9800 !important;
+      outline-offset: 2px;
+      box-shadow: 0 0 14px 2px rgba(255,152,0,.55), 0 2px 8px rgba(0,0,0,.08) !important;
+      background: #fff3e0 !important;
+    }
+    .anim-sign-flip span {
+      color: #e65100 !important;
+      font-weight: 900 !important;
+    }
+
+    /* 浮动卡片跨等号时的翻转闪烁 */
+    @keyframes signFlipFlash {
+      0%   { transform: scale(1); }
+      35%  { transform: scale(1.25) rotate(-6deg); }
+      65%  { transform: scale(0.92) rotate(3deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    .drag-float.sign-flip-flash {
+      outline: 3px solid #ff9800;
+      outline-offset: 2px;
+      background: #fff3e0 !important;
+      box-shadow: 0 0 18px 4px rgba(255,152,0,.5) !important;
+      animation: signFlipFlash .35s cubic-bezier(.36,.07,.19,.97) !important;
+    }
+    .drag-float.sign-flip-flash span {
+      color: #e65100 !important;
+      font-weight: 900 !important;
+    }
+
+    /* 工具乘除脉冲动画 */
+    @keyframes animToolPulse {
+      0%   { transform: scale(1);   box-shadow: 0 0 0 rgba(255,180,0,0); }
+      45%  { transform: scale(1.18); box-shadow: 0 0 14px rgba(255,180,0,.55); }
+      100% { transform: scale(1);   box-shadow: 0 0 0 rgba(255,180,0,0); }
+    }
+    .anim-tool-pulse {
+      animation: animToolPulse .5s ease !important;
+    }
+
+    /* ── 工具操作：tool-show 阶段动画 ── */
+
+    /* 加减法：运算卡片飞入 */
+    @keyframes toolFlyIn {
+      0%   { opacity: 0; transform: translateX(var(--fly-from, 120px)) scale(.3); filter: blur(4px); }
+      50%  { opacity: 1; transform: translateX(0) scale(1.18); filter: blur(0); }
+      75%  { transform: translateX(0) scale(.95); }
+      100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+    }
+    .tool-fly-card {
+      animation: toolFlyIn .6s cubic-bezier(.22,1,.36,1) both !important;
+      box-shadow: 0 0 20px rgba(17,107,96,.5), 0 0 40px rgba(17,107,96,.2);
+      border: 2px solid var(--brand) !important;
+      z-index: 5;
+    }
+
+    /* 乘除法：运算标签容器 */
+    .tool-mul-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    /* 乘除法：项目发光 */
+    @keyframes toolMulGlow {
+      0%   { box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+      40%  { box-shadow: 0 0 18px rgba(255,180,0,.6), 0 0 36px rgba(255,180,0,.2); }
+      100% { box-shadow: 0 0 14px rgba(255,180,0,.45), 0 0 28px rgba(255,180,0,.15); }
+    }
+    .tool-mul-glow {
+      animation: toolMulGlow .5s ease both !important;
+    }
+    /* 乘除法：×N / ÷N 标签 */
+    @keyframes toolBadgeIn {
+      0%   { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0); }
+      50%  { opacity: 1; transform: translateX(-50%) translateY(-2px) scale(1.35); }
+      80%  { transform: translateX(-50%) translateY(0) scale(.95); }
+      100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+    .tool-mul-badge {
+      position: absolute;
+      left: 50%; top: -14px;
+      transform: translateX(-50%);
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--brand), #0d8a6f);
+      color: #fff;
+      font: bold 15px/1.3 sans-serif;
+      white-space: nowrap;
+      z-index: 5;
+      pointer-events: none;
+      box-shadow: 0 2px 10px rgba(17,107,96,.4);
+      animation: toolBadgeIn .55s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    /* ── 展开括号：单次渲染 CSS 编排 ── */
+    .expand-wrap {
+      display: inline-flex; align-items: center; gap: 6px;
+      flex-wrap: wrap; justify-content: center;
+    }
+    /* 每个展开项：grid 叠放分身层 + 结果层 */
+    .expand-term {
+      display: grid; place-items: center;
+      position: relative;
+    }
+    .expand-term > .split-content { grid-row: 1; grid-column: 1; }
+    /* 结果层绝对定位，不影响 grid cell 尺寸 */
+    .expand-term > .result-content {
+      position: absolute;
+      left: 50%; top: 50%;
+      white-space: nowrap;
+    }
+
+    /* ▸ 分身层：出现 → 停留 → 淡出 */
+    .split-content {
+      display: inline-flex; align-items: center; gap: 2px;
+      padding: 6px 8px; border-radius: 12px;
+      background: #f0faf7; border: 1px solid #c9ddd4;
+      animation: splitLife 1.15s ease both;
+      z-index: 1;
+    }
+    @keyframes splitLife {
+      0%   { opacity: 0; transform: scale(.7); }
+      12%  { opacity: 1; transform: scale(1.03); }
+      20%  { opacity: 1; transform: scale(1); }
+      52%  { opacity: 1; transform: scale(1); }
+      72%  { opacity: 0; transform: scale(.88); }
+      100% { opacity: 0; transform: scale(.88); }
+    }
+    /* ▸ 乘法 badge：从中心飞往各项 */
+    .split-mul {
+      font: bold 16px/1 sans-serif; color: var(--brand);
+      animation: splitFly .55s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes splitFly {
+      0%   { opacity: 0; transform: translateX(var(--fly-from,0)) scale(.25); }
+      55%  { opacity: 1; transform: translateX(0) scale(1.1); }
+      100% { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    .split-term {
+      font: bold 18px/1 "Consolas", monospace;
+    }
+    .split-term.x { color: var(--blue); }
+    .split-term.n { color: var(--warm); }
+
+    /* ▸ 结果层：交叉淡入，与分身层平滑衔接 */
+    .result-content {
+      opacity: 0; pointer-events: none;
+      animation: resultReveal .5s cubic-bezier(.22,1,.36,1) forwards;
+      /* animation-delay 由 JS 内联设置 */
+    }
+    @keyframes resultReveal {
+      0%   { opacity: 0; transform: translate(-50%,-50%) scale(.55); filter: blur(2px); }
+      50%  { opacity: 1; transform: translate(-50%,-50%) scale(1.06); filter: blur(0); }
+      100% { opacity: 1; transform: translate(-50%,-50%) scale(1);   filter: blur(0); }
+    }
+
+    /* 工具拖拽：幽灵预览卡 */
+    .tool-ghost {
+      display: inline-flex; align-items: center;
+      padding: 10px 14px; border-radius: 16px;
+      border: 1.5px dashed var(--brand);
+      background: rgba(17, 107, 96, 0.08);
+      font: bold 20px/1 "Consolas", monospace;
+      color: var(--brand); opacity: .7;
+      pointer-events: none;
+      animation: animAppear .35s ease-out;
+    }
+
+    /* 合并容器 */
+    .merge-group {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      gap: 2px;
+    }
+
+    /* 组合动画：先入场，再向中心聚拢消失（一气呵成，无DOM重建） */
+    @keyframes animAppearThenMerge {
+      0%   { opacity: 0; transform: translateX(0) scale(.5); }
+      22%  { opacity: 1; transform: translateX(0) scale(1.06); }
+      32%  { opacity: 1; transform: translateX(0) scale(1); }
+      100% { opacity: 0; transform: translateX(var(--merge-dx, 0px)) scale(.7); }
+    }
+    .anim-appear-merge {
+      animation: animAppearThenMerge 1.1s ease-in-out forwards !important;
+      pointer-events: none;
+    }
+
+    /* 合并结果：在碰撞点延迟弹出 */
+    @keyframes animMergePop {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(.15); }
+      50%  { opacity: 1; transform: translate(-50%, -50%) scale(1.18);
+             box-shadow: 0 0 22px rgba(17,107,96,.5); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1);
+             box-shadow: 0 0 0 rgba(17,107,96,0); }
+    }
+    .anim-merge-pop {
+      position: absolute !important;
+      left: 50%; top: 50%;
+      z-index: 2;
+      white-space: nowrap;
+      opacity: 0;
+      animation: animMergePop .5s ease-out forwards !important;
+      animation-delay: .75s !important;
+    }
+
+    /* 展开原始阶段：括号组溶解 */
+    @keyframes animExpandDissolve {
+      0%   { opacity: 1; transform: scale(1); }
+      100% { opacity: .3; transform: scale(.9); filter: blur(2px); }
+    }
+
+    /* ── 新手引导 ── */
+    .onboard-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(30,24,12,.62);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 24px; padding: 24px;
+      animation: fadeIn .35s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .onboard-overlay.hide {
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s;
+    }
+    .onboard-card {
+      background: #fffdf6; border-radius: 22px;
+      box-shadow: 0 16px 48px rgba(30,24,12,.35);
+      padding: 24px 28px; max-width: 460px; width: 100%;
+      text-align: center;
+    }
+    .onboard-card h2 {
+      margin: 0 0 10px; font-size: 24px; color: var(--brand);
+    }
+    .onboard-steps {
+      text-align: left; display: grid; gap: 12px; margin: 14px 0;
+    }
+    .onboard-step { display: flex; gap: 10px; align-items: flex-start; }
+    .onboard-num {
+      flex: 0 0 28px; height: 28px; border-radius: 50%;
+      background: var(--brand); color: #fff;
+      display: grid; place-items: center;
+      font-weight: 800; font-size: 14px;
+    }
+    .onboard-step p {
+      margin: 0; font-size: 14px; line-height: 1.5; color: var(--text);
+    }
+    .onboard-step strong { color: var(--brand); }
+    .onboard-dismiss {
+      margin-top: 6px;
+      padding: 12px 32px; border: 0; border-radius: 999px;
+      background: var(--brand); color: #fff;
+      font: 800 15px/1 sans-serif; cursor: pointer;
+      transition: background .2s;
+    }
+    .onboard-dismiss:hover { background: #0e5a50; }
+
+    /* ── 响应式：流式缩放 ── */
+    .app { padding: clamp(6px,2vw,14px) clamp(8px,2.5vw,14px) 28px; }
+    .chip { font-size: clamp(16px, 4vw, 22px); padding: clamp(6px,1.8vw,10px) clamp(8px,2.4vw,14px); }
+    .group { font-size: clamp(16px, 4vw, 22px); padding: clamp(6px,1.8vw,8px) clamp(8px,2.4vw,12px); }
+    .eqbox { width: clamp(42px,12vw,64px); height: clamp(42px,12vw,64px); font-size: clamp(20px,6vw,32px); }
+    .smartbtn { font-size: clamp(13px,3.2vw,15px); padding: clamp(10px,2.8vw,14px) clamp(12px,3vw,16px); }
+    .coach-body { font-size: clamp(12px,3vw,14px); }
+    .goal-banner { font-size: clamp(12px,3vw,14px); padding: clamp(7px,2vw,9px) 16px; }
+    .topbar-title { font-size: clamp(14px,3.6vw,17px); }
+    .tool-op { width: clamp(34px,9vw,40px); height: clamp(34px,9vw,40px); font-size: clamp(15px,4vw,18px); }
+    .tool-input { width: clamp(42px,12vw,52px); font-size: clamp(14px,3.5vw,16px); padding: clamp(6px,1.5vw,8px) 4px; }
+    .tool-label { font-size: clamp(10px,2.5vw,12px); }
+
+    /* ── 响应式：小屏手机 ≤ 380px ── */
+    @media (max-width: 380px) {
+      .board { grid-template-columns: 1fr 42px 1fr; gap: 3px; }
+      .half { padding: 6px; min-height: 90px; }
+      .row { gap: 5px; min-height: 60px; }
+      .slot { width: 14px; height: 44px; }
+      .chip em.story-label, .group em.story-label { display: none; }
+      .card-legend { gap: 10px; margin-top: 4px; }
+      .gexpand { padding: 3px 6px; font-size: 10px; }
+      .tool-row { gap: 4px; margin-top: 6px; padding-top: 6px; }
+      .tool-label { display: none; }
+      .bottom-bar button { padding: 10px 6px; font-size: 12px; }
+      .topbar-badge { padding: 4px 8px; font-size: 11px; }
+      .coach-icon { font-size: 18px; }
+      .eq-area { padding: 8px; border-radius: 16px; }
+      .onboard-card { padding: 16px 14px; }
+      .onboard-card h2 { font-size: 20px; }
+    }
+
+    /* ── 响应式：普通手机 ≤ 500px ── */
+    @media (max-width: 500px) {
+      .board { grid-template-columns: 1fr 52px 1fr; gap: 4px; }
+      .half { padding: 8px; min-height: 110px; }
+      .row { gap: 6px; }
+      .slot { width: 16px; height: 48px; }
+      .eq-area { padding: 10px; border-radius: 18px; }
+    }
+
+    /* ── 响应式：平板/桌面 ≥ 768px ── */
+    @media (min-width: 768px) {
+      .half { padding: 16px; min-height: 170px; }
+      .row { gap: 10px; min-height: 90px; }
+      .board { gap: 12px; }
+      .eq-area { padding: 18px; }
+      .bottom-bar button { padding: 14px 16px; font-size: 14px; }
+    }
+
+    /* ── 响应式：横屏手机 ── */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .app { gap: 6px; padding-bottom: 10px; }
+      .half { min-height: 80px; padding: 6px; }
+      .goal-banner { padding: 5px 12px; }
+      .coach-bubble { padding: 8px 12px; }
+      .bottom-bar button { padding: 8px 10px; }
+      .smartbtn { padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ====== 主界面（单列聚焦） ====== -->
+  <div class="app">
+
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" type="button">☰</button>
+      <div class="topbar-info">
+        <div id="title" class="topbar-title"></div>
+        <div id="subtitle" class="topbar-sub"></div>
+      </div>
+      <div id="prog" class="topbar-badge"></div>
+    </header>
+
+    <div id="goal" class="goal-banner"></div>
+
+    <div id="storyCard" class="story-card" style="display:none">
+      <span class="story-icon">📖</span>
+      <span id="storyText" class="story-text"></span>
+    </div>
+
+    <section class="eq-area">
+      <div class="board">
+        <section class="half">
+          <div class="cap"><span data-i18n="left_side">左边</span></div>
+          <div id="left" class="row"></div>
+        </section>
+        <div class="eqs">
+          <div id="eqToolDrop" class="eqbox">=</div>
+        </div>
+        <section class="half">
+          <div class="cap"><span data-i18n="right_side">右边</span></div>
+          <div id="right" class="row"></div>
+        </section>
+      </div>
+      <div id="cardLegend" class="card-legend"></div>
+      <div id="buildTray" class="build-tray" style="display:none">
+        <div class="build-tray-label" data-i18n="build_tray">可用卡片</div>
+        <div id="buildTrayCards" class="build-tray-cards"></div>
+        <div class="build-tray-hint" data-i18n="build_return">拖回这里可以取下</div>
+      </div>
+      <div class="tool-row">
+        <span class="tool-label" data-i18n="tool_label">两边同时</span>
+        <input id="toolValue" type="text" value="2" class="tool-input" spellcheck="false" inputmode="numeric" />
+        <button class="tool-op" data-op="add" type="button">+</button>
+        <button class="tool-op" data-op="sub" type="button">−</button>
+        <button class="tool-op" data-op="mul" type="button">×</button>
+        <button class="tool-op" data-op="div" type="button">÷</button>
+      </div>
+    </section>
+
+    <div id="coach" class="coach-bubble"></div>
+
+    <div id="status" class="status-toast hide"></div>
+
+    <div class="actions-bar">
+      <div id="smartActions" class="smartrow"></div>
+    </div>
+
+    <div class="bottom-bar">
+      <button id="undo" type="button" data-i18n="undo_btn">撤销一步</button>
+      <button id="reset" type="button">重置</button>
+      <button id="next" type="button" class="btn-next" data-i18n="next_btn">下一关</button>
+    </div>
+
+  </div>
+
+  <!-- ====== 抽屉菜单 ====== -->
+  <div class="drawer-overlay" id="drawerOverlay">
+    <aside class="drawer" id="drawer">
+      <div class="drawer-head">
+        <h2 data-i18n="app_title">等式实验室</h2>
+        <button id="drawerClose" type="button" class="drawer-x">✕</button>
+      </div>
+      <p class="drawer-desc" data-i18n="app_desc">拖卡片，亲手做等式变形。支持触屏和鼠标。</p>
+      <div class="lang-switch">
+        <button class="langbtn active" data-lang="zh">中文</button>
+        <button class="langbtn" data-lang="ja">日本語</button>
+      </div>
+
+      <section class="dw-section" id="levelPanel">
+        <div class="dw-ttl" data-i18n="level_track">闯关线</div>
+        <div id="levels"></div>
+        <button id="resetProgress" class="reset-progress" data-i18n="reset_progress">清除进度</button>
+      </section>
+
+      <section class="dw-section" id="playPanel">
+        <div class="dw-ttl" data-i18n="play_track">实验线</div>
+        <div class="free">
+          <input id="freeLeft" value="x+1" spellcheck="false" />
+          <input id="freeRight" value="5" spellcheck="false" />
+          <button id="loadFree" data-i18n="load_custom">载入自定义等式</button>
+          <button id="randomFree" type="button" data-i18n="random_btn">随机来一题</button>
+          <div class="samplebar">
+            <button type="button" data-left="x+4" data-right="9" data-i18n="sample" data-i18n-p0="1">样例 1</button>
+            <button type="button" data-left="2(x+1)+2" data-right="10" data-i18n="sample" data-i18n-p0="2">样例 2</button>
+            <button type="button" data-left="1/2x+3" data-right="8" data-i18n="sample" data-i18n-p0="3">样例 3</button>
+          </div>
+          <div class="note" data-i18n-html="input_hint">
+            支持 <code>△</code>、整数、分数、以及一层倍数括号，例如 <code>2(△+1)</code>、<code>1/2△+1</code>。
+          </div>
+        </div>
+      </section>
+
+      <section class="dw-section">
+        <div class="dw-ttl" data-i18n="rules_title">规则</div>
+        <div class="rule" data-i18n-html="rule_1">跨等号时，卡片会先变成相反项。</div>
+        <div class="rule" data-i18n-html="rule_2">放进 <code>2( )</code> 里时，要先缩成一半，值才不变。</div>
+        <div class="rule" data-i18n-html="rule_3">看到 <code>1/2x</code> 这种分数系数时，可以用两边同时 <code>×2</code>。</div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- ====== 新手引导 ====== -->
+  <div id="onboard" class="onboard-overlay" style="display:none">
+    <div class="onboard-card">
+      <h2 data-i18n="onboard_title">欢迎来到等式实验室！</h2>
+      <p style="color:var(--muted);margin:0" data-i18n="onboard_sub">三步学操作，然后就能自己动手啦</p>
+      <div class="onboard-steps">
+        <div class="onboard-step">
+          <span class="onboard-num">1</span>
+          <p data-i18n-html="onboard_s1"><strong>拖卡片</strong> — 按住数字或 x 的卡片，拖到等号的另一边。跨过等号时，正变负、负变正。</p>
+        </div>
+        <div class="onboard-step">
+          <span class="onboard-num">2</span>
+          <p data-i18n-html="onboard_s2"><strong>建议按钮</strong> — 不确定该怎么做？点建议按钮会高亮提示下一步要操作的地方，但实际操作还是要自己动手。</p>
+        </div>
+        <div class="onboard-step">
+          <span class="onboard-num">3</span>
+          <p data-i18n-html="onboard_s3"><strong>菜单</strong> — 点左上角 ☰ 可以切换关卡、尝试实验模式、查看规则。</p>
+        </div>
+      </div>
+      <button class="onboard-dismiss" id="onboardDismiss" data-i18n="onboard_dismiss">知道了，开始！</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { init } from './js/ui.js';
+    init();
+    window.__EQ_INIT__ = true;
+  </script>
+  <script>
+    // 检测 ES 模块是否成功加载
+    setTimeout(function () {
+      if (!window.__EQ_INIT__) {
+        var msg = document.createElement('div');
+        msg.style.cssText =
+          'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;' +
+          'justify-content:center;background:rgba(30,24,12,.85);color:#fff;font-size:18px;' +
+          'text-align:center;padding:32px;line-height:1.7;font-family:sans-serif';
+        msg.innerHTML =
+          '<div style="max-width:520px">' +
+          '<h2 style="color:#5fd4b5;margin:0 0 16px">⚠ 页面脚本未加载</h2>' +
+          '<p>ES 模块在 <code style="background:#333;padding:2px 6px;border-radius:4px">file://</code> 协议下无法运行。</p>' +
+          '<p>请通过本地服务器访问：</p>' +
+          '<code style="display:block;background:#1a1a1a;padding:12px;border-radius:8px;margin:12px 0;font-size:15px;user-select:all">' +
+          'http://localhost:8766/equation_lab.html</code>' +
+          '<p style="color:#bbb;font-size:14px">如果上述地址无法访问，请在终端运行：<br/>' +
+          '<code style="background:#333;padding:2px 6px;border-radius:4px">cd equation-lab && npx http-server src -p 8766 -c-1</code></p>' +
+          '</div>';
+        document.body.appendChild(msg);
+      }
+    }, 1500);
+  </script>
+</body>
+</html>

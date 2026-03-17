@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>等式实验室</title>
+  <style>
+    :root{--line:#d8c9ab;--text:#2b2418;--muted:#6c624f;--brand:#116b60;--warm:#bb6b2c;--blue:#1b6383}
+    *{box-sizing:border-box}
+    body{margin:0;font:14px/1.5 "Trebuchet MS","PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:linear-gradient(150deg,#faf6ed,#ece1cb);padding:20px}
+    .app{max-width:1380px;margin:0 auto;display:grid;grid-template-columns:280px 1fr;gap:16px}
+    .card{background:rgba(255,250,240,.9);border:1px solid var(--line);border-radius:18px;box-shadow:0 14px 32px rgba(90,66,24,.1)}
+    .side{padding:16px;display:grid;gap:14px;align-self:start;position:sticky;top:16px}
+    .hero{padding:16px;background:linear-gradient(135deg,#156f63,#245e9e);color:#f5fffc;border:0}
+    .hero h1{margin:0 0 8px;font-size:28px}.hero p{margin:0;color:rgba(245,255,252,.86)}
+    .panel{padding:14px}.panel.activepanel{outline:2px solid rgba(17,107,96,.18);background:rgba(239,250,246,.72)}.ttl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+    .level{width:100%;border:1px solid var(--line);background:#fff;padding:10px 12px;border-radius:14px;text-align:left;cursor:pointer}
+    .level.active{outline:2px solid rgba(17,107,96,.2)}.level small{display:block;color:var(--muted)}
+    .free{display:grid;gap:8px}.free input{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;font:14px/1.4 Consolas,monospace;color:var(--text)}
+    .free button{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#daf0ea;color:#145b50;font-weight:700;cursor:pointer}
+    .samplebar{display:flex;flex-wrap:wrap;gap:8px}.samplebar button{border:1px solid #e1d3b7;background:#fff;border-radius:999px;padding:7px 10px;font-size:12px;cursor:pointer;color:var(--muted)}
+    .rule,.log,.note{font-size:13px;color:var(--muted);padding-left:10px;border-left:3px solid #dbc89f}
+    .main{display:grid;gap:16px}
+    .head{padding:16px 18px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+    .head h2{margin:0 0 6px;font-size:28px}.head p{margin:0;color:var(--muted)}
+    .headstack{display:grid;gap:10px;justify-items:end}
+    .goal,.prog{padding:10px 14px;border-radius:999px;font-weight:700}
+    .goal{background:#daf0ea;color:#145b50}.prog{background:#fff;border:1px solid #eadfc9;color:var(--muted)}
+    .work{padding:18px;display:grid;gap:16px}
+    .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.tools button{border:1px solid var(--line);background:#fff;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:700}
+    .tools button:disabled{opacity:.45;cursor:not-allowed}
+    .next{background:#daf0ea!important;color:#145b50}
+    .modebar{display:flex;gap:8px;flex-wrap:wrap}
+    .modebtn{border:1px solid var(--line);background:#fff;padding:10px 14px;border-radius:999px;cursor:pointer;font-weight:800;color:var(--muted)}
+    .modebtn.active{background:#145b50;color:#f5fffc;border-color:#145b50}
+    .toolbox{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px;border:1px solid #e4d7be;border-radius:14px;background:rgba(255,255,255,.48)}
+    .toolbox input{width:84px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;font:14px/1.3 Consolas,monospace;color:var(--text)}
+    .opcard{display:inline-flex;align-items:center;justify-content:center;min-width:68px;padding:9px 12px;border:1px solid #dccfb6;border-radius:12px;background:#fff;font:800 18px/1 Consolas,monospace;cursor:grab;user-select:none}
+    .opcard.drag{opacity:.28}.opcard.add{color:var(--warm);background:#fff4e7;border-color:#e5caab}.opcard.mul{color:#145b50;background:#eef9f5;border-color:#c9ddd4}
+    .meta{display:grid;grid-template-columns:minmax(220px,1fr) 1.1fr 1.1fr;gap:12px}
+    .mini,.status{padding:12px 14px;border:1px solid #e4d7be;border-radius:14px;background:rgba(255,255,255,.58)}
+    .status.ok{background:#effaf6;border-color:#cfe7de}.status.err{background:#fff4f1;border-color:#f0d0c9}.status.tip{background:#f4f8ff;border-color:#d2deef}
+    .smart{padding:12px 14px;border:1px solid #d6dccc;border-radius:14px;background:rgba(239,250,246,.66);display:grid;gap:10px}
+    .smartrow{display:flex;flex-wrap:wrap;gap:8px}
+    .smartbtn{border:1px solid rgba(17,107,96,.2);background:#fff;padding:9px 12px;border-radius:999px;cursor:pointer;font-weight:800;color:#145b50}
+    .smartempty{font-size:13px;color:var(--muted)}
+    .eq{padding:18px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,#fffdf8,#f8f0df)}
+    .board{display:grid;grid-template-columns:1fr 120px 1fr;gap:10px;align-items:center}
+    .half{min-height:220px;border:1px solid #e6d8bd;border-radius:18px;background:rgba(255,255,255,.74);padding:14px;display:grid;grid-template-rows:auto 1fr auto;gap:10px}
+    .cap{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;text-transform:uppercase}
+    .row,.visual{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;align-items:center}
+    .row{min-height:92px}.visual{min-height:50px;padding-top:10px;border-top:1px dashed #d9ccb4}
+    .eqs{text-align:center}.eqbox{width:92px;height:92px;border-radius:24px;border:1px solid #d7ccb4;background:#fff;display:grid;place-items:center;font-size:42px;font-weight:900;color:var(--brand);margin:0 auto}
+    .eqbox.on{border-color:rgba(17,107,96,.45);background:#effaf6;box-shadow:0 0 0 4px rgba(17,107,96,.08)}
+    .eqs p{margin:8px 0 0;color:var(--muted);font-size:12px}
+    .slot{width:16px;height:66px;border-radius:999px;border:1px dashed transparent}.slot.on{border-color:rgba(17,107,96,.45);background:rgba(17,107,96,.08)}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:16px;border:1px solid #dccfb6;background:#fff;font:bold 21px/1 "Consolas",monospace;cursor:grab;user-select:none}
+    .chip.drag{opacity:.28}.chip.x{color:var(--blue);background:#eef7fb;border-color:#bfd9e7}.chip.n{color:var(--warm);background:#fff4e7;border-color:#e5caab}
+    .chip em{font:600 11px/1 sans-serif;color:var(--muted);font-style:normal}
+    .drag-float{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;opacity:.94;box-shadow:0 12px 24px rgba(90,66,24,.16)}
+    .group{min-width:220px;padding:10px;border-radius:18px;border:1px solid #c9ddd4;background:#eef9f5}
+    .ghead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+    .mul{padding:5px 9px;border-radius:999px;background:#d9efe8;color:#145b50;font:bold 14px/1 Consolas,monospace}
+    .gtools{display:flex;gap:6px;align-items:center}
+    .gbtn{border:1px solid rgba(17,107,96,.2);background:#fff;padding:5px 8px;border-radius:999px;color:#145b50;font:700 12px/1.1 "Trebuchet MS","PingFang SC","Microsoft YaHei",sans-serif;cursor:pointer}
+    .gbody{min-height:72px;padding:8px;border:1px dashed rgba(17,107,96,.35);border-radius:14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:rgba(255,255,255,.5)}
+    .gbody.on{background:rgba(17,107,96,.08)}
+    .tok{padding:7px 9px;border-radius:12px;border:1px solid rgba(17,107,96,.2);background:#fff;font:bold 18px/1 Consolas,monospace}
+    .hint{font-size:12px;color:var(--muted)}
+    .badge{min-width:42px;min-height:42px;border-radius:12px;border:1px solid #dccfb6;background:#fff;display:grid;place-items:center;padding:4px 8px;font-weight:800}
+    .badge.x{background:#eef7fb;border-color:#bfd9e7;color:var(--blue)}.badge.n{background:#fff4e7;border-color:#e5caab;color:var(--warm)}.badge.g{background:#eef9f5;border-color:#c9ddd4;color:#145b50}
+    .foot{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    code{font-family:Consolas,monospace;background:#fff;border:1px solid #eadfc9;padding:2px 5px;border-radius:7px}
+    @media (max-width:1100px){.app{grid-template-columns:1fr}.side{position:static}}
+    @media (max-width:900px){body{padding:14px}.board,.meta,.foot,.head{grid-template-columns:1fr}.headstack{justify-items:start}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <section class="card hero"><h1>等式实验室</h1><p>拖卡片，亲手做等式变形。这一版加入了动态教练、下一关流转和一个分数关卡，开始更像老师带着学生练。</p></section>
+      <section id="levelPanel" class="card panel"><div class="ttl">闯关线</div><div id="levels"></div></section>
+      <section id="playPanel" class="card panel">
+        <div class="ttl">实验线</div>
+        <div class="free">
+          <input id="freeLeft" value="x+1" spellcheck="false" />
+          <input id="freeRight" value="5" spellcheck="false" />
+          <button id="loadFree">载入自定义等式</button>
+          <button id="randomFree" type="button">随机来一题</button>
+          <div class="samplebar">
+            <button type="button" data-left="x+4" data-right="9">样例 1</button>
+            <button type="button" data-left="2(x+1)+2" data-right="10">样例 2</button>
+            <button type="button" data-left="1/2x+3" data-right="8">样例 3</button>
+          </div>
+          <div class="note">支持 `x`、整数、分数、以及一层倍数括号，例如 `2(x+1)`、`1/2x+1`。</div>
+        </div>
+      </section>
+      <section class="card panel"><div class="ttl">规则</div><div class="rule">跨等号时，卡片会先变成相反项。</div><div class="rule">放进 <code>2( )</code> 里时，要先缩成一半，值才不变。</div><div class="rule">看到 <code>1/2x</code> 这种分数系数时，可以用两边同时 <code>×2</code>。</div></section>
+      <section class="card panel"><div class="ttl">最近操作</div><div id="logs"></div></section>
+    </aside>
+    <main class="main">
+      <section class="card head">
+        <div><h2 id="title"></h2><p id="subtitle"></p></div>
+        <div class="headstack"><div id="goal" class="goal"></div><div id="prog" class="prog"></div></div>
+      </section>
+      <section class="card work">
+        <div class="modebar">
+          <button id="modeLevel" class="modebtn" type="button">闯关线</button>
+          <button id="modePlay" class="modebtn" type="button">实验线</button>
+        </div>
+        <div class="tools">
+          <button id="undo">撤销一步</button>
+          <button id="reset">重置关卡</button>
+          <div class="toolbox">
+            <span>工具值</span>
+            <input id="toolValue" value="2" spellcheck="false" />
+            <div id="toolAdd" class="opcard add" draggable="true"></div>
+            <div id="toolSub" class="opcard add" draggable="true"></div>
+            <div id="toolMul" class="opcard mul" draggable="true"></div>
+            <div id="toolDiv" class="opcard mul" draggable="true"></div>
+          </div>
+          <button id="next" class="next">下一关</button>
+        </div>
+        <div class="meta">
+          <div class="mini"><div class="ttl">当前式子</div><div>左边 <code id="leftText"></code></div><div style="margin-top:8px">右边 <code id="rightText"></code></div></div>
+          <div id="status" class="status"></div>
+          <div id="coach" class="status tip"></div>
+        </div>
+        <div class="smart">
+          <div class="ttl">下一步建议</div>
+          <div id="smartActions" class="smartrow"></div>
+        </div>
+        <div class="eq">
+          <div class="board">
+            <section class="half"><div class="cap"><span>左边</span><span id="lc"></span></div><div id="left" class="row"></div><div id="lv" class="visual"></div></section>
+            <div class="eqs"><div id="eqToolDrop" class="eqbox">=</div><p>把工具卡拖到这里，就会对两边同时操作</p></div>
+            <section class="half"><div class="cap"><span>右边</span><span id="rc"></span></div><div id="right" class="row"></div><div id="rv" class="visual"></div></section>
+          </div>
+        </div>
+        <div class="foot">
+          <section class="mini"><div class="ttl">落点</div><div class="note">竖条表示插回这一侧。</div><div class="note">绿色括号表示吸进倍数括号。</div><div class="note">暂时不开放把括号里卡片拖出来。</div></section>
+          <section class="mini"><div class="ttl">故事图</div><div class="note">蓝盒子是未知的 <code>x</code>。</div><div class="note">橙块是固定数量。</div><div class="note">绿箱是被倍数包住的一串东西。</div></section>
+          <section class="mini"><div class="ttl">设计意图</div><div class="note">闯关线负责循序渐进，实验线负责自由试错。</div><div class="note">“过等号变号”被解释成等价变形。</div><div class="note">“进括号”按倍数缩放，避免数学讲歪。</div></section>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const $=id=>document.getElementById(id), clone=v=>JSON.parse(JSON.stringify(v));
+    const lvls=[
+      {title:"关卡 1：把常数请到另一边",sub:"先熟悉跨等号变相反项。",goal:"把式子变成 x = 某个数字",target:{n:4,d:1},eq:{left:{items:[{t:"term",s:"x",c:{n:1,d:1}},{t:"term",s:"n",c:{n:1,d:1}}]},right:{items:[{t:"term",s:"n",c:{n:5,d:1}}]}}},
+      {title:"关卡 2：先看清同类项",sub:"拖过去之后，右边的数字会自动合并。",goal:"把右边整理成一个数字，再把 x 单独留下",target:{n:5,d:1},eq:{left:{items:[{t:"term",s:"x",c:{n:1,d:1}},{t:"term",s:"n",c:{n:3,d:1}}]},right:{items:[{t:"term",s:"n",c:{n:2,d:1}},{t:"term",s:"n",c:{n:6,d:1}}]}}},
+      {title:"关卡 3：把外面的 +2 放进 2 倍括号",sub:"这关专门测试括号规则。把 +2 拖进 2( ) 里，会先缩成括号里的 +1。",goal:"体验“放进 2( ) 里要先除以 2”",target:{n:3,d:1},eq:{left:{items:[{t:"group",m:{n:2,d:1},items:[{t:"term",s:"x",c:{n:1,d:1}},{t:"term",s:"n",c:{n:1,d:1}}]},{t:"term",s:"n",c:{n:2,d:1}}]},right:{items:[{t:"term",s:"n",c:{n:10,d:1}}]}}},
+      {title:"关卡 4：让分数系数消失",sub:"遇到 1/2x 时，别慌。先把常数请走，再想想怎样让半个 x 变回一个完整的 x。",goal:"体验 1/2x + 1 = 4 这一类分数方程",target:{n:6,d:1},eq:{left:{items:[{t:"term",s:"x",c:{n:1,d:2}},{t:"term",s:"n",c:{n:1,d:1}}]},right:{items:[{t:"term",s:"n",c:{n:4,d:1}}]}}}
+    ];
+    const st={i:0,mode:"level",custom:null,eq:null,h:[],logs:[],drag:null,status:{k:"",t:"现在先动手试试",m:"把一张卡片拖到新的位置上。允许的落点会亮起来。"}};
+    function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a||1}
+    function F(n,d=1){if(!d)throw Error("0");const s=d<0?-1:1,g=gcd(n*s,Math.abs(d));return{n:n*s/g,d:Math.abs(d)/g}}
+    const add=(a,b)=>F(a.n*b.d+b.n*a.d,a.d*b.d), mul=(a,b)=>F(a.n*b.n,a.d*b.d), div=(a,b)=>F(a.n*b.d,a.d*b.n), neg=a=>F(-a.n,a.d), abs=a=>F(Math.abs(a.n),a.d), eq=(a,b)=>a.n===b.n&&a.d===b.d, zero=a=>a.n===0, one=a=>a.n===a.d;
+    const ft=a=>a.d===1?String(a.n):a.n+"/"+a.d, sign=(c,s)=>{const a=abs(c), body=s==="n"?ft(a):(one(a)?"x":ft(a)+"x");return (c.n<0?"-":"+")+body}, plain=(c,s)=>{const a=abs(c), body=s==="n"?ft(a):(one(a)?"x":ft(a)+"x");return (c.n<0?"-":"")+body};
+    function listText(items){return items.length?items.map((it,i)=>{const v=sign(it.c,it.s);return i?v:v.replace(/^\+/,"")}).join(" "):"0"}
+    function sideText(side){return side.items.length?side.items.map((it,i)=>it.t==="term"?((v=>i?v:v.replace(/^\+/,""))(sign(it.c,it.s))):((it.m.n<0?"-":i?"+" :"")+(one(abs(it.m))?"":ft(abs(it.m)))+"("+listText(it.items)+")")).join(" "):"0"}
+    function simpTerms(items){let xs=F(0), ns=F(0), xo=null, no=null; items.forEach((it,i)=>{if(it.s==="x"){xs=add(xs,it.c); if(xo===null)xo=i+.1}else{ns=add(ns,it.c); if(no===null)no=i+.2}}); const out=[]; if(!zero(xs))out.push({o:xo??items.length+.1,it:{t:"term",s:"x",c:xs}}); if(!zero(ns))out.push({o:no??items.length+.2,it:{t:"term",s:"n",c:ns}}); out.sort((a,b)=>a.o-b.o); return out.map(x=>x.it)}
+    function simpSide(side){const entries=[], terms=[]; side.items.forEach((it,i)=>{if(it.t==="term")terms.push(it); else {const inner=simpTerms(it.items); if(!inner.length||zero(it.m))return; if(one(it.m))inner.forEach(x=>terms.push(x)); else entries.push({o:i,it:{t:"group",m:F(it.m.n,it.m.d),items:inner}})}}); const s=simpTerms(terms), first=side.items.findIndex(x=>x.t==="term"); s.forEach((it,i)=>entries.push({o:first===-1?side.items.length+i:first+i*.1,it})); entries.sort((a,b)=>a.o-b.o); return{items:entries.map(x=>x.it)}}
+    function simp(eq0){return{left:simpSide(eq0.left),right:simpSide(eq0.right)}}
+    function termCount(side,s){return side.items.filter(it=>it.t==="term"&&(!s||it.s===s)).length}
+    function firstTerm(side,s){return side.items.find(it=>it.t==="term"&&(!s||it.s===s))}
+    function loneFractionX(side){const t=side.items.length===1&&side.items[0].t==="term"&&side.items[0].s==="x"?side.items[0]:null; return t&&!one(abs(t.c))?t:null}
+    function loneGroup(side){return side.items.length===1&&side.items[0].t==="group"?side.items[0]:null}
+    function makePlayScene(left,right,title="实验线：自由试验台",sub="自己输入式子，观察每一步如何改写结构。"){return{title,sub,goal:"自由实验，不设固定答案",eq:{left,right}}}
+    function scene(){return st.mode==="play"?(st.custom||makePlayScene(parseSide("x+1"),parseSide("5"))):lvls[st.i]}
+    function solved(){if(!scene().target)return false; const L=st.eq.left.items,R=st.eq.right.items,t=scene().target; if(L.length!==1||R.length!==1)return false; const a=L[0],b=R[0]; return a.t==="term"&&b.t==="term"&&((a.s==="x"&&eq(a.c,F(1))&&b.s==="n"&&eq(b.c,t))||(b.s==="x"&&eq(b.c,F(1))&&a.s==="n"&&eq(a.c,t)))}
+    function coach(){const L=st.eq.left,R=st.eq.right; if(solved()) return {t:"教练总结",m:st.i<lvls.length-1?"这一关已经通了。可以点“下一关”，看看同一套规则怎样处理更复杂的式子。":"所有示例关卡都通了。接下来更适合去实验线自己出题试试。"}; if(st.mode==="play"&&!scene().target){if(L.items.some(it=>it.t==="group")||R.items.some(it=>it.t==="group"))return{t:"实验提醒",m:"实验线里没有标准答案。你可以比较两种路线：先展开，或者先把外面的常数移走。"}; if(termCount(L,"x")+termCount(R,"x")===1)return{t:"实验提醒",m:"这里只有一个未知数块。试试把它身边的常数清走，再看系数要不要处理。"}; return{t:"实验提醒",m:"先选一条你想验证的规则：移项、展开、还是两边同时乘除。实验线的重点是比较路线，不是抢最快答案。"}} const gL=loneGroup(L), gR=loneGroup(R), fxL=loneFractionX(L), fxR=loneFractionX(R); if((termCount(L,"x")===1&&termCount(L,"n")===1&&R.items.every(it=>it.t==="term"&&it.s==="n"))||(termCount(R,"x")===1&&termCount(R,"n")===1&&L.items.every(it=>it.t==="term"&&it.s==="n"))) return {t:"教练建议",m:"先把和 x 同侧的常数拖到另一边。这样能把未知数身边的数字朋友请走。"}; if((L.items.some(it=>it.t==="group")&&termCount(L,"n")>0)||(R.items.some(it=>it.t==="group")&&termCount(R,"n")>0)) return {t:"教练建议",m:"这一关有倍数括号。试着把外面的常数拖进括号里，系统会先按外面的倍数缩放。"}; if((gL&&R.items.length===1&&R.items[0].t==="term"&&R.items[0].s==="n")||(gR&&L.items.length===1&&L.items[0].t==="term"&&L.items[0].s==="n")) return {t:"教练建议",m:"如果你想看清乘法怎样作用到里面每一项，可以直接点括号上的“展开”。"}; if((fxL&&eq(abs(fxL.c),F(1,2))&&R.items.length===1&&R.items[0].t==="term"&&R.items[0].s==="n")||(fxR&&eq(abs(fxR.c),F(1,2))&&L.items.length===1&&L.items[0].t==="term"&&L.items[0].s==="n")) return {t:"教练建议",m:"看到 1/2x 了。试试两边同时 × 2，让半个 x 变回一个完整的 x。"}; const loneXL=loneFractionX(L), loneXR=loneFractionX(R); if(loneXL||loneXR) return {t:"教练建议",m:"未知数已经几乎被单独留下。最后一步通常是把系数变成 1。"}; return {t:"教练提示",m:"先观察：哪一边有未知数？哪一个操作既简单，又能让 x 更孤单？"}}
+    function parseFracToken(token){if(!/^\d+(\/\d+)?$/.test(token))throw Error("数字格式不对："+token); const p=token.split("/").map(Number); return F(p[0],p[1]||1)}
+    function toolValue(){return parseFracToken($("toolValue").value.trim())}
+    function parseSide(text,allowGroup=true){const s=text.replace(/\s+/g,""); if(!s)throw Error("式子不能为空"); const items=[]; let i=0; while(i<s.length){let sg=1; if(s[i]==="+"||s[i]==="-"){sg=s[i]==="-"?-1:1; i++} if(i>=s.length)throw Error("末尾不能只有符号"); let coeff=null, start=i; while(i<s.length&&/\d|\//.test(s[i]))i++; if(i>start)coeff=parseFracToken(s.slice(start,i)); if(i<s.length&&s[i]==="x"){items.push({t:"term",s:"x",c:sg===1?(coeff||F(1)):neg(coeff||F(1))}); i++} else if(i<s.length&&s[i]==="("){if(!allowGroup)throw Error("当前版本只支持一层括号"); let depth=1,j=i+1; while(j<s.length&&depth){if(s[j]==="(")depth++; else if(s[j]===")")depth--; j++} if(depth)throw Error("括号没有闭合"); items.push({t:"group",m:sg===1?(coeff||F(1)):neg(coeff||F(1)),items:parseSide(s.slice(i+1,j-1),false).items}); i=j} else if(coeff){items.push({t:"term",s:"n",c:sg===1?coeff:neg(coeff)})} else throw Error("这里无法识别："+s.slice(i)); if(i<s.length&&s[i]!=="+"&&s[i]!=="-")throw Error("这里缺少运算符："+s.slice(i))} return {items}}
+    function load(i){st.mode="level"; st.custom=null; st.i=i; st.eq=simp(clone(lvls[i].eq)); st.h=[]; st.logs=["新关卡已装载。先观察式子，再动手。"]; st.status={k:"",t:"关卡已重置",m:"拖动卡片试一试。跨等号会变成相反项，放进倍数括号会先按倍数缩放。"}; render()}
+    function loadPlayScene(scene,logText,statusTitle,statusMsg){st.mode="play"; st.custom=scene; st.eq=simp(clone(scene.eq)); st.h=[]; st.logs=[logText]; st.status={k:"",t:statusTitle,m:statusMsg}; render()}
+    function syncFreeInputs(sceneEq){$("freeLeft").value=sideText(sceneEq.left); $("freeRight").value=sideText(sceneEq.right)}
+    function loadFree(){try{const left=parseSide($("freeLeft").value), right=parseSide($("freeRight").value); loadPlayScene(makePlayScene(left,right,"实验线：自定义等式","这是你自己输入的等式。现在可以随便实验拖拽、进括号和两边同时乘除。"),"实验线已载入。现在可以自己试各种移动。","实验线已启动","这不是预设关卡，所以没有固定答案。重点是观察每一步会怎样改变结构。")}catch(err){st.status={k:"err",t:"自定义式子解析失败",m:String(err.message||err)}; render()}}
+    function randomInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+    function loadRandomPlay(){const picks=[
+      ()=>({left:parseSide("x+"+randomInt(2,8)),right:parseSide(String(randomInt(9,16))),title:"实验线：随机常数题",sub:"先把常数请到另一边，再观察自动合并。"}),
+      ()=>({left:parseSide(randomInt(2,4)+"x+"+randomInt(1,6)),right:parseSide(String(randomInt(10,24))),title:"实验线：随机整系数题",sub:"先清掉常数，再想办法把几个 x 平均分开。"}),
+      ()=>({left:parseSide("1/2x+"+randomInt(1,4)),right:parseSide(String(randomInt(5,12))),title:"实验线：随机分数题",sub:"注意什么时候该用两边同时乘法。"}),
+      ()=>({left:parseSide("2(x+"+randomInt(1,4)+")+"+randomInt(2,6)),right:parseSide(String(randomInt(10,20))),title:"实验线：随机括号题",sub:"可以试试拖进括号，也可以展开后再整理。"})
+    ]; const pick=picks[randomInt(0,picks.length-1)](); const scene=makePlayScene(pick.left,pick.right,pick.title,pick.sub); syncFreeInputs(scene.eq); loadPlayScene(scene,"随机实验题已生成。先观察结构，再决定是拖项还是用工具箱。","随机题已装载","这一题没有标准路线，重点是比较不同操作会怎样影响结构。")}
+    function src(){if(!st.drag)return null; const it=st.eq[st.drag.side].items[st.drag.idx]; return it&&it.t==="term"?it:null}
+    function push(){st.h.push(clone(st.eq)); if(st.h.length>30)st.h.shift()}
+    function log(t){st.logs.unshift(t); st.logs=st.logs.slice(0,6)}
+    function actionText(from,target,to,notes){const dst=target.k==="side"?(target.side==="left"?"左边":"右边"):(target.side==="left"?"左边的倍数括号":"右边的倍数括号"); return "把 "+sign(from.c,from.s)+" 拖到"+dst+"，得到 "+sign(to.c,to.s)+"。"+(notes.length?notes.join("，")+"。":"")}
+    function convert(term,fromSide,target){let c=F(term.c.n,term.c.d), notes=[]; if(fromSide!==target.side){c=neg(c); notes.push("跨过等号，先变成相反项")} if(target.k==="group"){const g=st.eq[target.side].items[target.gi]; c=div(c,g.m); notes.push("为了放进 "+ft(g.m)+"( )，再按倍数缩放")} return{term:{t:"term",s:term.s,c},notes}}
+    function normalizeAction(term,side){const other=side==="left"?"right":"left", c=term.c; if(one(c))return null; if(eq(c,F(-1)))return{label:"两边同时 × -1", run:()=>applyToolOperation("mul",F(-1)), note:"先把 -x 变回 +x。"}; const ac=abs(c); if(ac.d===1)return{label:"两边同时 ÷ "+ft(ac), run:()=>applyToolOperation("div",ac), note:"把 "+plain(c,"x")+" 平均分成一个 x。"}; return{label:"两边同时 × "+ft(F(ac.d,ac.n)), run:()=>applyToolOperation("mul",F(ac.d,ac.n)), note:"让 "+plain(c,"x")+" 变成一个完整的 x。"}}
+    function moveConstantAction(side){const own=st.eq[side], other=side==="left"?"right":"left"; if(termCount(own,"x")!==1||termCount(own,"n")!==1)return null; if(!st.eq[other].items.every(it=>it.t==="term"&&it.s==="n"))return null; const idx=own.items.findIndex(it=>it.t==="term"&&it.s==="n"); if(idx===-1)return null; const term=own.items[idx], target={k:"side",side:other,at:st.eq[other].items.length}, r=convert(term,side,target); return{label:"把 "+sign(term.c,term.s)+" 移到"+(other==="left"?"左边":"右边"), run:()=>{push(); st.eq[side].items.splice(idx,1); st.eq[other].items.splice(st.eq[other].items.length,0,r.term); st.eq=simp(st.eq); const txt=actionText(term,target,r.term,r.notes); log(txt); st.status={k:"",t:"这一步成立",m:txt}; render()}, note:"先把 x 身边的常数请走。"}}
+    function smartActions(){const out=[], L=st.eq.left, R=st.eq.right; const mx=moveConstantAction("left"), my=moveConstantAction("right"); if(mx)out.push(mx); if(my)out.push(my); const loneLX=L.items.length===1&&L.items[0].t==="term"&&L.items[0].s==="x"?L.items[0]:null; const loneRX=R.items.length===1&&R.items[0].t==="term"&&R.items[0].s==="x"?R.items[0]:null; const norm=loneLX?normalizeAction(loneLX,"left"):loneRX?normalizeAction(loneRX,"right"):null; if(norm)out.push(norm); const gL=loneGroup(L), gR=loneGroup(R); if(gL)out.push({label:"展开左边括号",run:()=>expandGroup("left",0),note:"把乘法分到括号里，结构会更清楚。"}); if(gR)out.push({label:"展开右边括号",run:()=>expandGroup("right",0),note:"把乘法分到括号里，结构会更清楚。"}); return out.slice(0,3)}
+    function renderSmartActions(){const box=$("smartActions"), actions=smartActions(); box.innerHTML=""; if(!actions.length){box.innerHTML="<div class='smartempty'>当前没有固定下一步。你可以继续自由拖拽，或者用工具箱尝试两边同时操作。</div>"; return} actions.forEach(a=>{const b=document.createElement("button"); b.className="smartbtn"; b.type="button"; b.textContent=a.label; b.title=a.note; b.onclick=a.run; box.appendChild(b)})}
+    function floatChip(term){const d=document.createElement("div"); d.className="chip drag-float "+(term.s==="x"?"x":"n"); d.innerHTML="<span>"+sign(term.c,term.s)+"</span><em>"+(term.s==="x"?"未知盒":"数量块")+"</em>"; return d}
+    function floatTool(op,val){const d=document.createElement("div"); d.className="opcard drag-float "+((op==="mul"||op==="div")?"mul":"add"); d.textContent=(op==="add"?"+":op==="sub"?"-":op==="mul"?"×":"÷")+ft(val); return d}
+    function moveFloat(x,y){if(!st.drag?.float)return; st.drag.float.style.left=(x+18)+"px"; st.drag.float.style.top=(y+12)+"px"}
+    function setFloatTerm(term){if(!st.drag?.float)return; st.drag.float.className="chip drag-float "+(term.s==="x"?"x":"n"); st.drag.float.innerHTML="<span>"+sign(term.c,term.s)+"</span><em>"+(term.s==="x"?"未知盒":"数量块")+"</em>"}
+    function preview(target,e){const term=src(); if(!term||!st.drag)return; setFloatTerm(convert(term,st.drag.side,target).term); if(e)moveFloat(e.clientX,e.clientY)}
+    function clearPreview(){const term=src(); if(!term||!st.drag)return; setFloatTerm(term)}
+    function clearFloat(){const f=st.drag?.float; if(f?.parentNode)f.parentNode.removeChild(f)}
+    function drop(target){const term=src(); if(!term){st.status={k:"err",t:"拖拽来源失效",m:"请重新拖一次。"}; render(); return} push(); const fs=st.drag.side, fi=st.drag.idx, r=convert(term,fs,target); st.eq[fs].items.splice(fi,1); if(target.k==="side"){let at=target.at; if(fs===target.side&&fi<target.at)at--; st.eq[target.side].items.splice(at,0,r.term)} else st.eq[target.side].items[target.gi].items.splice(target.at,0,r.term); st.eq=simp(st.eq); const txt=actionText(term,target,r.term,r.notes); log(txt); st.status={k:"",t:"这一步成立",m:txt}; end()}
+    function expandGroup(side,gi){const group=st.eq[side].items[gi]; if(!group||group.t!=="group")return; push(); const expanded=group.items.map(item=>({t:"term",s:item.s,c:mul(item.c,group.m)})); st.eq[side].items.splice(gi,1,...expanded); st.eq=simp(st.eq); const txt="把 "+ft(group.m)+"("+listText(group.items)+") 展开成 "+expanded.map((x,i)=>{const v=sign(x.c,x.s); return i?v:v.replace(/^\+/,'')}).join(" ")+"。"; log(txt); st.status={k:"",t:"括号已展开",m:txt}; render()}
+    function scale(f,label){push(); ["left","right"].forEach(side=>{st.eq[side].items=st.eq[side].items.map(it=>it.t==="term"?{...it,c:mul(it.c,f)}:{...it,m:mul(it.m,f)})}); st.eq=simp(st.eq); const txt="两边同时"+label+"，所以等式还保持平衡。"; log(txt); st.status={k:"",t:"对称操作已执行",m:txt}; render()}
+    function applyToolOperation(op,val){if(op==="div"&&zero(val)){st.status={k:"err",t:"不能除以 0",m:"请在工具箱里输入一个不为 0 的数字。"}; render(); return} push(); if(op==="add"||op==="sub"){const amount=op==="add"?val:neg(val); ["left","right"].forEach(side=>st.eq[side].items.push({t:"term",s:"n",c:amount}))} else {const factor=op==="mul"?val:div(F(1),val); ["left","right"].forEach(side=>{st.eq[side].items=st.eq[side].items.map(it=>it.t==="term"?{...it,c:mul(it.c,factor)}:{...it,m:mul(it.m,factor)})})} st.eq=simp(st.eq); const verb=op==="add"?"加上 ":op==="sub"?"减去 ":op==="mul"?"乘以 ":"除以 "; const txt="两边同时"+verb+ft(val)+"，所以等式还保持平衡。"; log(txt); st.status={k:"",t:"工具箱操作已执行",m:txt}; render()}
+    function bindToolCard(id,op){const el=$(id); el.addEventListener("dragstart",e=>{let val; try{val=toolValue()}catch(err){st.status={k:"err",t:"工具值无效",m:String(err.message||err)}; render(); e.preventDefault(); return} const canvas=document.createElement("canvas"); canvas.width=1; canvas.height=1; st.drag={kind:"tool",op,val,float:floatTool(op,val)}; e.dataTransfer.effectAllowed="move"; if(e.dataTransfer.setDragImage)e.dataTransfer.setDragImage(canvas,0,0); document.body.appendChild(st.drag.float); moveFloat(e.clientX,e.clientY); requestAnimationFrame(()=>el.classList.add("drag"))}); el.addEventListener("dragend",end)}
+    function refreshToolbox(){let valText="2"; try{valText=ft(toolValue())}catch{} $("toolAdd").textContent="+"+valText; $("toolSub").textContent="-"+valText; $("toolMul").textContent="×"+valText; $("toolDiv").textContent="÷"+valText}
+    function slot(target){const d=document.createElement("div"); d.className="slot"; ["dragenter","dragover"].forEach(n=>d.addEventListener(n,e=>{if(!st.drag||st.drag.kind==="tool")return; e.preventDefault(); d.classList.add("on"); preview(target,e)})); d.addEventListener("dragleave",()=>{d.classList.remove("on"); if(st.drag?.kind!=="tool")clearPreview()}); d.addEventListener("drop",e=>{if(!st.drag||st.drag.kind==="tool")return; e.preventDefault(); d.classList.remove("on"); drop(target)}); return d}
+    function chip(side,it,idx){const d=document.createElement("div"); d.className="chip "+(it.s==="x"?"x":"n"); d.draggable=true; d.innerHTML="<span>"+sign(it.c,it.s)+"</span><em>"+(it.s==="x"?"未知盒":"数量块")+"</em>"; d.addEventListener("dragstart",e=>{const canvas=document.createElement("canvas"); canvas.width=1; canvas.height=1; st.drag={kind:"term",side,idx,float:floatChip(it)}; e.dataTransfer.effectAllowed="move"; if(e.dataTransfer.setDragImage)e.dataTransfer.setDragImage(canvas,0,0); document.body.appendChild(st.drag.float); moveFloat(e.clientX,e.clientY); requestAnimationFrame(()=>d.classList.add("drag"))}); d.addEventListener("dragend",end); return d}
+    function group(side,it,gi){const d=document.createElement("div"); d.className="group"; d.innerHTML="<div class='ghead'><div class='mul'>"+ft(it.m)+"( )</div><div class='gtools'><button class='gbtn' type='button'>展开</button><div class='hint'>放进来时会先按倍数缩放</div></div></div>"; d.querySelector("button").onclick=e=>{e.stopPropagation(); expandGroup(side,gi)}; const b=document.createElement("div"); b.className="gbody"; ["dragenter","dragover"].forEach(n=>b.addEventListener(n,e=>{if(!st.drag||st.drag.kind==='tool')return; e.preventDefault(); b.classList.add("on"); preview({k:'group',side,gi,at:it.items.length},e)})); b.addEventListener("dragleave",()=>{b.classList.remove("on"); if(st.drag?.kind!=='tool')clearPreview()}); b.addEventListener("drop",e=>{if(!st.drag||st.drag.kind==='tool')return; e.preventDefault(); b.classList.remove("on"); drop({k:"group",side,gi,at:it.items.length})}); if(!it.items.length){const h=document.createElement("div"); h.className="hint"; h.textContent="把卡片拖到这里。系统会先按外面的倍数缩放。"; b.appendChild(h)} else it.items.forEach(x=>{const t=document.createElement("div"); t.className="tok"; t.textContent=sign(x.c,x.s); b.appendChild(t)}); d.appendChild(b); return d}
+    function visual(el,side){el.innerHTML=""; if(!side.items.length){el.innerHTML="<div class='badge n'>0</div>"; return} side.items.forEach(it=>{const d=document.createElement("div"); if(it.t==="term"){d.className="badge "+(it.s==="x"?"x":"n"); d.textContent=plain(it.c,it.s)} else {d.className="badge g"; d.textContent=ft(it.m)+"×("+listText(it.items)+")"} el.appendChild(d)})}
+    function paint(side){const box=$(side), v=$(side[0]+"v"), s=st.eq[side]; box.innerHTML=""; box.appendChild(slot({k:"side",side,at:0})); s.items.forEach((it,i)=>{box.appendChild(it.t==="term"?chip(side,it,i):group(side,it,i)); box.appendChild(slot({k:"side",side,at:i+1}))}); if(!s.items.length){const h=document.createElement("div"); h.className="hint"; h.textContent="这一边现在空了，等价于 0。"; box.appendChild(h)} visual(v,s)}
+    function end(){clearFloat(); $("eqToolDrop").classList.remove("on"); st.drag=null; document.querySelectorAll(".chip.drag,.opcard.drag").forEach(x=>x.classList.remove("drag")); render()}
+    function render(){const lv=scene(), c=coach(); refreshToolbox(); $("levels").innerHTML=""; lvls.forEach((x,i)=>{const b=document.createElement("button"); b.className="level"+(st.mode==="level"&&i===st.i?" active":""); b.innerHTML=x.title+"<small>"+x.sub+"</small>"; b.onclick=()=>load(i); $("levels").appendChild(b)}); $("modeLevel").classList.toggle("active",st.mode==="level"); $("modePlay").classList.toggle("active",st.mode==="play"); $("levelPanel").classList.toggle("activepanel",st.mode==="level"); $("playPanel").classList.toggle("activepanel",st.mode==="play"); $("reset").textContent=st.mode==="play"?"重置实验":"重置关卡"; $("title").textContent=lv.title; $("subtitle").textContent=lv.sub; $("goal").textContent=lv.goal; $("prog").textContent=st.mode==="play"?"实验线":"第 "+(st.i+1)+" / "+lvls.length+" 关"; $("leftText").textContent=sideText(st.eq.left); $("rightText").textContent=sideText(st.eq.right); $("lc").textContent=st.eq.left.items.length+" 项"; $("rc").textContent=st.eq.right.items.length+" 项"; paint("left"); paint("right"); if(solved()){st.status={k:"ok",t:"你已经把未知数单独请出来了",m:st.i<lvls.length-1?"现在可以点“下一关”，继续练同一个思路。":"所有示例关卡都通了。"}; if(!st.logs[0]?.includes("成功"))log("成功：未知数已经被单独留下。")} renderSmartActions(); $("logs").innerHTML=st.logs.map(x=>"<div class='log'>"+x+"</div>").join(""); $("status").className="status "+st.status.k; $("status").innerHTML="<strong>"+st.status.t+"</strong><div>"+st.status.m+"</div>"; $("coach").className="status tip"; $("coach").innerHTML="<strong>"+c.t+"</strong><div>"+c.m+"</div>"; $("undo").disabled=!st.h.length; $("next").disabled=st.mode!=="level"||!solved()||st.i===lvls.length-1}
+    $("reset").onclick=()=>{if(st.mode==="play"&&st.custom)loadPlayScene(clone(st.custom),st.logs[0]||"实验线已重载。","实验线已重置","回到这一题最初的状态，再试另一条路线。"); else load(st.i)};
+    $("undo").onclick=()=>{if(!st.h.length)return; st.eq=st.h.pop(); st.status={k:"",t:"已撤销一步",m:"系统恢复到了上一个稳定状态。"}; log("撤销：回到上一步。"); render()};
+    $("next").onclick=()=>{if(st.i<lvls.length-1)load(st.i+1)};
+    $("loadFree").onclick=loadFree;
+    $("randomFree").onclick=loadRandomPlay;
+    $("modeLevel").onclick=()=>load(st.i);
+    $("modePlay").onclick=()=>{if(st.custom)loadPlayScene(clone(st.custom),st.logs[0]||"返回实验线。","实验线已恢复","继续用你刚才那道式子做实验。"); else loadRandomPlay()};
+    document.querySelectorAll("[data-left][data-right]").forEach(btn=>btn.onclick=()=>{$("freeLeft").value=btn.dataset.left; $("freeRight").value=btn.dataset.right; loadFree()});
+    $("toolValue").oninput=refreshToolbox;
+    bindToolCard("toolAdd","add");
+    bindToolCard("toolSub","sub");
+    bindToolCard("toolMul","mul");
+    bindToolCard("toolDiv","div");
+    ["dragenter","dragover"].forEach(n=>$("eqToolDrop").addEventListener(n,e=>{if(!st.drag||st.drag.kind!=="tool")return; e.preventDefault(); $("eqToolDrop").classList.add("on"); moveFloat(e.clientX,e.clientY)}));
+    $("eqToolDrop").addEventListener("dragleave",()=>{$("eqToolDrop").classList.remove("on")});
+    $("eqToolDrop").addEventListener("drop",e=>{if(!st.drag||st.drag.kind!=="tool")return; e.preventDefault(); $("eqToolDrop").classList.remove("on"); applyToolOperation(st.drag.op,st.drag.val); end()});
+    window.addEventListener("dragover",e=>{if(st.drag)moveFloat(e.clientX,e.clientY)});
+    load(0);
+  </script>
+</body>
+</html>
