@@ -25,7 +25,18 @@
 
 ## 运行方式
 
-直接在浏览器中打开 `src/equation_lab.html` 即可。
+这个项目使用 ES 模块，不能直接用 `file://` 打开。
+
+本地开发：
+
+- `npm install`
+- `node tests/e2e/static-server.mjs`
+- 打开 `http://127.0.0.1:8766/equation_lab.html`
+
+浏览器回归测试：
+
+- 首次运行前执行 `npm run test:e2e:install`
+- 然后执行 `npm run test:e2e`
 
 ## 产品决策
 

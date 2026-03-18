@@ -16,9 +16,9 @@ export const chapters = [
     id: 'ch1',
     name: { zh: '第一章：平衡和未知数 — 用等式讲故事', ja: '第1章：バランスと未知数 — 等式でお話しよう', en: 'Chapter 1: Balance & Unknowns' },
     desc: {
-      zh: '等号就像天平：两边一样重。把数字搬到另一边就能找到 △！',
-      ja: '等号はてんびんみたい：両側が同じ重さ。数字を反対側に動かせば △ が見つかるよ！',
-      en: 'The equals sign is like a balance: both sides weigh the same. Move numbers to the other side to find x!',
+      zh: '等号就像天平：两边一直要一样多。先把 △ 身边的数字请走，就更容易看清未知数。',
+      ja: '等号はてんびんみたい：両側はいつも同じだけあるよ。まず △ のそばの数をどかすと、未知数が見やすくなるよ。',
+      en: 'The equals sign is like a balance: both sides must stay equal. Clear the numbers next to x first so the unknown becomes easier to see.',
     },
     levels: [
       /* ── 1-1 ── */
@@ -29,9 +29,9 @@ export const chapters = [
           ja: 'たけしくんのポケットにキャンディが何個か入っています。お母さんがさらに 2 個くれて、数えたら全部で 5 個でした。最初は何個あった？',
           en: 'Alex has some candies in his pocket. Mom gives him 2 more, and he counts 5 in total. How many did he start with?',
         },
-        sub:  { zh: '试试把 +2 拖到等号右边', ja: '+2 を等号の右側にドラッグしてみよう', en: 'Try dragging +2 to the right side' },
+        sub:  { zh: '先把 +2 请走，看看 △ 会不会更孤单', ja: 'まず +2 をどかして、△ がひとりに近づくか見てみよう', en: 'Clear +2 first and see whether x becomes more alone' },
         goal: { zh: '求出 △ 等于几', ja: '△ の値を求めよう', en: 'Find the value of x' },
-        hint: { zh: '长按 +2 拖到右边试试！跨过等号它会自动变号。', ja: '+2 を長押しして右へドラッグ！等号を越えると自動で符号が変わるよ。', en: 'Long-press +2 and drag it right! It changes sign when crossing the equals sign.' },
+        hint: { zh: '长按 +2 拖到右边试试！这相当于两边都减去 2，所以右边会看到相反项。', ja: '+2 を長押しして右へドラッグしてみよう！これは両側から 2 を引くのと同じだから、右側では反対の項として見えるよ。', en: 'Hold +2 and drag it right. That matches subtracting 2 from both sides, so you see the opposite term on the right.' },
         annotations: {
           left:  [{ zh: '原有的', ja: 'もとの数', en: 'original' }, { zh: '妈妈给的', ja: 'もらった分', en: 'from Mom' }],
           right: [{ zh: '一共', ja: '合計', en: 'total' }],
@@ -50,7 +50,7 @@ export const chapters = [
           ja: 'ふでばこに鉛筆が何本か入っています。さらに 5 本入れたら全部で 8 本になりました。最初は何本？',
           en: 'There are some pencils in a case. After putting in 5 more, there are 8 in total. How many were there?',
         },
-        sub:  { zh: '把 +5 拖到右边', ja: '+5 を右側にドラッグしよう', en: 'Drag +5 to the right' },
+        sub:  { zh: '先把 +5 请走', ja: 'まず +5 をどかそう', en: 'Clear +5 first' },
         goal: { zh: '求出 △ 等于几', ja: '△ の値を求めよう', en: 'Find the value of x' },
         annotations: {
           left:  [{ zh: '原有的', ja: 'もとの数', en: 'original' }, { zh: '放进的', ja: '入れた分', en: 'added' }],
@@ -70,9 +70,9 @@ export const chapters = [
           ja: '本棚に本が何冊かあります。花子さんが 1 冊借りたら、残りは 4 冊。もとは何冊あった？',
           en: 'There are some books on the shelf. After borrowing 1, only 4 are left. How many were there?',
         },
-        sub:  { zh: '负数搬家也会变号哦', ja: 'マイナスも移動すると符号が変わるよ', en: 'Negatives change sign when moved too!' },
+        sub:  { zh: '“借走 1 本”表示少了 1，本题要把这部分请走', ja: '「1 冊借りた」は 1 減ったということ。このぶんをどかしてみよう', en: '"Borrowing 1" means 1 less. Clear that part away in this level' },
         goal: { zh: '求出 △ 等于几', ja: '△ の値を求めよう', en: 'Find the value of x' },
-        hint: { zh: '把 −1 拖到右边，它会变成 +1。', ja: '−1 を右側にドラッグすると、+1 に変わるよ。', en: 'Drag -1 to the right — it becomes +1.' },
+        hint: { zh: '把 −1 拖到右边，就像两边都补回 1 本，所以右边会出现 +1。', ja: '−1 を右側へ動かすと、両側に 1 冊もどすのと同じ。だから右側では +1 に見えるよ。', en: 'Move -1 to the right. It matches adding 1 back to both sides, so the right side shows +1.' },
         annotations: {
           left:  [{ zh: '原有的', ja: 'もとの数', en: 'original' }, { zh: '借走的', ja: '借りた分', en: 'borrowed' }],
           right: [{ zh: '还剩', ja: '残り', en: 'remaining' }],
@@ -150,8 +150,9 @@ export const chapters = [
           ja: 'たけしくんはいくらか貯めていて、月曜に 2 円、火曜にさらに 1 円もらいました。8 円持っている花子さんと同じです。最初にいくら貯めていた？',
           en: 'Alex saved some money. He got 2 yuan on Monday and 1 more on Tuesday. Now he has the same as Beth\'s 8 yuan. How much did he save?',
         },
-        sub:  { zh: '把 +2 和 +1 都搬到右边', ja: '+2 と +1 を両方とも右側へ移そう', en: 'Move both +2 and +1 to the right' },
+        sub:  { zh: '先把周一和周二多出来的钱分别请走', ja: '月曜と火曜にもらった分を、それぞれ先にどかそう', en: 'First clear away the extra money from Monday and Tuesday, one piece at a time' },
         goal: { zh: '求出 △ 等于几', ja: '△ の値を求めよう', en: 'Find the value of x' },
+        manualSimplify: true,
         annotations: {
           left:  [{ zh: '攒的', ja: '貯めた分', en: 'saved' }, { zh: '周一得的', ja: '月曜の分', en: 'Monday\'s' }, { zh: '周二得的', ja: '火曜の分', en: 'Tuesday\'s' }],
           right: [{ zh: '小红的', ja: '花子の', en: 'Beth\'s' }],
@@ -190,8 +191,9 @@ export const chapters = [
           ja: 'たけしくんは本を何冊か持っていて、2 冊貸した後さらに 5 冊買ったら、花子さんの 7 冊と同じです。最初は何冊持っていた？',
           en: 'Alex has some books. After lending 2 and buying 5, he has the same as Beth\'s 7. How many did he start with?',
         },
-        sub:  { zh: '正数和负数都要搬走', ja: 'プラスもマイナスも移動しよう', en: 'Move both positives and negatives' },
+        sub:  { zh: '先分清“借出”是减少，“买了”是增加，再分别处理', ja: '「貸した」は減る、「買った」は増える。まずそこを分けて考えよう', en: 'First separate “lent out” as a decrease and “bought” as an increase, then handle them one by one' },
         goal: { zh: '求出 △ 等于几', ja: '△ の値を求めよう', en: 'Find the value of x' },
+        manualSimplify: true,
         annotations: {
           left:  [{ zh: '原有的', ja: 'もとの数', en: 'original' }, { zh: '借出的', ja: '貸した分', en: 'lent out' }, { zh: '买的', ja: '買った分', en: 'bought' }],
           right: [{ zh: '小红的', ja: '花子の', en: 'Beth\'s' }],
@@ -210,7 +212,7 @@ export const chapters = [
           ja: 'たけしくんは鉛筆を何本か持っています。賞品で 4 本もらい 1 本あげたら、花子さんの 6 本と同じ。最初は何本持っていた？',
           en: 'Alex has some pens. After winning 4 prizes and giving 1 away, he has the same as Beth\'s 6. How many did he start with?',
         },
-        sub:  { zh: '两个常数都要搬走', ja: '2 つの定数を両方移そう', en: 'Move both constants away' },
+        sub:  { zh: '先分清“获得”是增加，“送出”是减少，再把它们请走', ja: '「もらった」は増える、「あげた」は減る。分けてからどかそう', en: 'Treat “won” as an increase and “gave away” as a decrease, then clear them in turn' },
         goal: { zh: '求出 △ 等于几', ja: '△ の値を求めよう', en: 'Find the value of x' },
         annotations: {
           left:  [{ zh: '原有的', ja: 'もとの数', en: 'original' }, { zh: '获得的', ja: 'もらった分', en: 'won' }, { zh: '送出的', ja: 'あげた分', en: 'given away' }],
@@ -1176,7 +1178,7 @@ export const chapters = [
           ja: '2 つの数の和が 20 で、大きい方が小さい方より 4 大きい。方程式を作ろう。',
           en: 'Two numbers add up to 20, and the bigger one is 4 more. Build the equation.',
         },
-        sub:  { zh: '两个未知数用 2△ 表示', ja: '2 つの未知数を 2△ で表そう', en: 'Two unknowns shown as 2x' },
+        sub:  { zh: '先设小数是 △，那大数就是 △+4，所以和可以写成 2△+4', ja: 'まず小さい数を △ とすると、大きい数は △+4。だから和は 2△+4 と書けるよ', en: 'Let the smaller number be x. Then the bigger one is x + 4, so the sum becomes 2x + 4' },
         goal: { zh: '列出等式：左边 = 右边', ja: '等式を作ろう：左辺 = 右辺', en: 'Build the equation: left = right' },
         tray: [
           { s: 'x', c: { n: 2, d: 1 }, label: { zh: '两个△（小+大的△部分）', ja: '2つ分の△', en: 'both x (small + big\'s x part)' } },

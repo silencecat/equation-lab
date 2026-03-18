@@ -443,7 +443,8 @@ function loadLevel(idx) {
     // 列方程模式：空方程起步
     gameState.equation = { left: { items: [] }, right: { items: [] } };
   } else {
-    gameState.equation = simplify(clone(lv.eq));
+    // 某些教学关卡需要保留初始结构，避免一进关就把关键项自动合并掉。
+    gameState.equation = lv.manualSimplify ? clone(lv.eq) : simplify(clone(lv.eq));
   }
   gameState.history = [];
   gameState.steps = 0;
@@ -466,7 +467,7 @@ function loadPlayScene(scene, logText, statusTitle, statusMsg) {
   // 自动计算实验线的 target
   const autoTarget = solveForX(scene.eq);
   if (autoTarget) scene.target = autoTarget;
-  gameState.equation = simplify(clone(scene.eq));
+  gameState.equation = scene.manualSimplify ? clone(scene.eq) : simplify(clone(scene.eq));
   gameState.history = [];
   gameState.steps = 0;
   uiState.celebrated = false;
