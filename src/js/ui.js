@@ -25,8 +25,8 @@ import { loadState, getState, updateState } from './state.js';
    ═══════════════════════════════════════════ */
 const $ = (id) => document.getElementById(id);
 
-/* GitHub Issues 基础 URL（推送到 GitHub 后填写实际地址） */
-const ISSUES_URL = 'https://github.com/nicepkg/equation-lab/issues/new';
+/* GitHub Issues 基础 URL */
+const ISSUES_URL = 'https://github.com/silencecat/equation-lab/issues/new';
 
 /* ═══════════════════════════════════════════
    全局状态
