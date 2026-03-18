@@ -4,7 +4,10 @@
  * 完全自包含的 HTML 文件，可以直接双击打开（file:// 也能用）。
  *
  * 用法：node build.js
- * 输出：dist/equation_lab.html
+ * 输出：
+ *   - dist/equation_lab.html
+ *   - dist/equation_lab_standalone.html
+ *   - dist/index.html
  */
 
 import { buildSync } from 'esbuild';
@@ -55,9 +58,11 @@ html = html.replace(scriptRegex, inlineScript);
 /* ── 4. 写入 dist/ ── */
 mkdirSync(DIST, { recursive: true });
 writeFileSync(resolve(DIST, 'equation_lab.html'), html, 'utf-8');
+writeFileSync(resolve(DIST, 'equation_lab_standalone.html'), html, 'utf-8');
 writeFileSync(resolve(DIST, 'index.html'), html, 'utf-8');
 
 const sizeKB = (Buffer.byteLength(html, 'utf-8') / 1024).toFixed(1);
-console.log(`✅ 构建完成 → dist/equation_lab.html + dist/index.html (${sizeKB} KB)`);
-console.log('   equation_lab.html: 本地双击打开');
+console.log(`✅ 构建完成 → dist/equation_lab.html + dist/equation_lab_standalone.html + dist/index.html (${sizeKB} KB)`);
+console.log('   equation_lab_standalone.html: 本地双击打开 / 发给家长直接用');
+console.log('   equation_lab.html: 与 standalone 内容相同，保留兼容旧路径');
 console.log('   index.html: GitHub Pages 部署用');

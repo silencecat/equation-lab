@@ -4,6 +4,7 @@
   "description": "Interactive algebra learning tool — drag cards to transform equations",
   "scripts": {
     "build": "node build.js",
+    "demo:record": "node scripts/record-demo.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
