@@ -49,6 +49,7 @@ const uiState = {
   drag: null,
   hint: null,   // { type:'move'|'tool'|'expand', ... }
   anim: null,   // 动画状态机: { phase, raw, final, merges, mulInfo, op, timer }
+  celebrated: false,  // 防止 confetti 重复触发
 };
 
 /* ═══════════════════════════════════════════
@@ -181,9 +182,17 @@ function detectMerges(rawSide, finalSide) {
     if (it.t !== 'term') return;
     (bySymbol[it.s] = bySymbol[it.s] || []).push(i);
   });
-  // 只有同类项 >=2 个时才算合并
+  // 统计 final 中各符号的项数
+  const finalCount = {};
+  finalSide.items.forEach(it => {
+    if (it.t !== 'term') return;
+    finalCount[it.s] = (finalCount[it.s] || 0) + 1;
+  });
+  // 只有同类项确实被合并（final 中项数减少）时才算合并
   for (const [sym, indices] of Object.entries(bySymbol)) {
     if (indices.length < 2) continue;
+    // 如果 final 中同符号项数未减少，说明没有发生合并
+    if ((finalCount[sym] || 0) >= indices.length) continue;
     // 在 final 中找对应的合并结果
     const merged = finalSide.items.find(x => x.t === 'term' && x.s === sym);
     if (merged) {
@@ -352,7 +361,8 @@ function sceneOptions() {
   const s = currentScene();
   const opts = {};
   if (s.manualSimplify) opts.manualSimplify = true;
-  if (s.hideSign) opts.hideSign = true;
+  // hideSign 暂时屏蔽：移项自带符号翻转动画，额外选符号体验冗余
+  // if (s.hideSign) opts.hideSign = true;
   return opts;
 }
 
@@ -390,7 +400,8 @@ function executeBuildRemove(side, idx) {
 
 /** 列方程模式：比较等式是否匹配（顺序无关） */
 function equationsMatch(eq1, eq2) {
-  return sidesMatch(eq1.left, eq2.left) && sidesMatch(eq1.right, eq2.right);
+  return (sidesMatch(eq1.left, eq2.left) && sidesMatch(eq1.right, eq2.right))
+      || (sidesMatch(eq1.left, eq2.right) && sidesMatch(eq1.right, eq2.left));
 }
 function sidesMatch(s1, s2) {
   const terms1 = s1.items.filter(i => i.t === 'term');
@@ -436,6 +447,9 @@ function loadLevel(idx) {
   }
   gameState.history = [];
   gameState.steps = 0;
+  uiState.celebrated = false;
+  removeNextArrow();
+  clearTutorial();
   uiState.logs = [t('log_loaded')];
   uiState.status = {
     k: '',
@@ -455,6 +469,9 @@ function loadPlayScene(scene, logText, statusTitle, statusMsg) {
   gameState.equation = simplify(clone(scene.eq));
   gameState.history = [];
   gameState.steps = 0;
+  uiState.celebrated = false;
+  removeNextArrow();
+  clearTutorial();
   uiState.logs = [logText];
   uiState.status = { k: '', t: statusTitle, m: statusMsg };
   render();
@@ -733,6 +750,7 @@ function hitTest(x, y) {
 let activeDropZone = null;
 
 function startDrag(info, floatEl, startX, startY) {
+  clearTutorial();
   uiState.drag = { ...info, float: floatEl };
   document.body.appendChild(floatEl);
   moveFloat(startX, startY);
@@ -988,7 +1006,10 @@ function getAnnotation(side, idx) {
   if (scene.type === 'build') {
     const term = gameState.equation[side]?.items?.[idx];
     if (term?._trayIdx !== undefined && scene.tray[term._trayIdx]?.label) {
-      return resolveText(scene.tray[term._trayIdx].label);
+      const raw = resolveText(scene.tray[term._trayIdx].label);
+      // 跳过纯带符号数字的标签（如 "+5"、"−5"），因为卡片本身已显示
+      if (/^[+\-\u2212]\d+$/.test(raw.trim())) return null;
+      return raw;
     }
     return null;
   }
@@ -1026,7 +1047,7 @@ function createChip(side, it, idx) {
   }
   // 手动合并结果高亮
   if (uiState.mergeFlash && uiState.mergeFlash.side === side && uiState.mergeFlash.idx === idx) {
-    d.classList.add('anim-merge-pop');
+    d.classList.add('merge-flash');
   }
 
   // 动画阶段样式
@@ -1209,7 +1230,9 @@ function paintBuildTray(scene) {
     const isPlaced = placed.has(i);
     const sign = item.c.n >= 0 ? ' pos' : ' neg';
     d.className = 'chip tray-chip ' + (item.s === 'x' ? 'x' : 'n') + sign + (isPlaced ? ' placed' : '');
-    const label = item.label ? resolveText(item.label) : '';
+    const rawLabel = item.label ? resolveText(item.label) : '';
+    // 跳过纯带符号数字的标签（如 "+4"、"−4"），因为卡片本身已显示
+    const label = rawLabel && /^[+\-\u2212]\d+$/.test(rawLabel.trim()) ? '' : rawLabel;
     d.innerHTML =
       '<span>' + signedHtml(item.c, item.s) + '</span>' +
       (label ? '<em class="story-label">' + label + '</em>' : '');
@@ -1480,6 +1503,156 @@ function removeToolGhosts() {
 }
 
 /* ═══════════════════════════════════════════
+   彩带庆祝动画
+   ═══════════════════════════════════════════ */
+
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const COLORS = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8','#20c997','#f06595'];
+  const COUNT = 80;
+  const particles = [];
+  for (let i = 0; i < COUNT; i++) {
+    particles.push({
+      x: canvas.width * (.2 + Math.random() * .6),
+      y: canvas.height * .45,
+      vx: (Math.random() - .5) * 14,
+      vy: -8 - Math.random() * 10,
+      w: 6 + Math.random() * 6,
+      h: 4 + Math.random() * 4,
+      color: COLORS[i % COLORS.length],
+      rot: Math.random() * Math.PI * 2,
+      rv: (Math.random() - .5) * .3,
+      gravity: .25 + Math.random() * .1,
+      opacity: 1,
+    });
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    for (const p of particles) {
+      p.x += p.vx;
+      p.vy += p.gravity;
+      p.y += p.vy;
+      p.rot += p.rv;
+      p.vx *= .99;
+      if (frame > 40) p.opacity = Math.max(0, p.opacity - .02);
+      if (p.opacity <= 0) continue;
+      alive = true;
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    frame++;
+    if (alive && frame < 120) {
+      requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  requestAnimationFrame(draw);
+}
+
+/* ═══════════════════════════════════════════
+   下一关引导箭头
+   ═══════════════════════════════════════════ */
+
+function showNextArrow() {
+  removeNextArrow();
+  const btn = $('next');
+  if (!btn || btn.disabled) return;
+  const arrow = document.createElement('span');
+  arrow.className = 'next-arrow';
+  arrow.id = 'nextArrow';
+  arrow.textContent = '👇';
+  btn.style.position = 'relative';
+  btn.appendChild(arrow);
+}
+
+function removeNextArrow() {
+  const el = document.getElementById('nextArrow');
+  if (el) el.remove();
+}
+
+/* ═══════════════════════════════════════════
+   第一关教学引导
+   ═══════════════════════════════════════════ */
+
+let tutorialStep = -1; // -1 表示不在教学模式
+
+function isTutorialLevel() {
+  return gameState.mode === 'level' && gameState.levelIdx === 0;
+}
+
+function getTutorialStep() {
+  if (!isTutorialLevel()) return -1;
+  const L = gameState.equation.left.items;
+  const R = gameState.equation.right.items;
+  const scene = currentScene();
+  // 已完成
+  if (isSolved(gameState.equation, scene.target)) return 99;
+  // 初始状态：x+2 = 5，需要把+2移到右边
+  if (L.length === 2 && L[0].s === 'x' && L[1].s === 'n') return 0;
+  // +2已移走，等式自动化简变成 x = 3（已完成）
+  return 99;
+}
+
+function renderTutorial() {
+  clearTutorial();
+  if (!isTutorialLevel()) return;
+  const step = getTutorialStep();
+  tutorialStep = step;
+
+  if (step === 0 && !uiState.anim) {
+    // 指向+2卡片：找到左侧第二个chip（idx=1）
+    const chips = document.querySelectorAll('#left > .chip');
+    const chip = chips.length >= 2 ? chips[1] : null;
+    const rightHalf = document.querySelector('#right')?.closest('.half');
+    if (chip && rightHalf) {
+      const chipRect = chip.getBoundingClientRect();
+      const rightRect = rightHalf.getBoundingClientRect();
+
+      // 箭头指向+2卡片上方
+      const arrow = document.createElement('div');
+      arrow.className = 'tut-arrow down';
+      arrow.id = 'tutArrow';
+      arrow.textContent = '👇';
+      arrow.style.left = (chipRect.left + chipRect.width / 2 - 16) + 'px';
+      arrow.style.top = (chipRect.top - 38) + 'px';
+      document.body.appendChild(arrow);
+
+      // 提示文字
+      const text = document.createElement('div');
+      text.className = 'tut-text';
+      text.id = 'tutText';
+      text.textContent = t('tut_drag_hint');
+      // 文字放在右侧区域上方
+      text.style.left = (rightRect.left + rightRect.width / 2) + 'px';
+      text.style.top = (rightRect.top - 48) + 'px';
+      text.style.transform = 'translateX(-50%)';
+      document.body.appendChild(text);
+    }
+  }
+}
+
+function clearTutorial() {
+  const arrow = document.getElementById('tutArrow');
+  const text = document.getElementById('tutText');
+  if (arrow) arrow.remove();
+  if (text) text.remove();
+}
+
+/* ═══════════════════════════════════════════
    渲染主函数
    ═══════════════════════════════════════════ */
 
@@ -1693,6 +1866,10 @@ function render() {
       eqDiv.classList.add('solve-celebrate');
       setTimeout(() => eqDiv.classList.remove('solve-celebrate'), 800);
     }
+    if (!uiState.celebrated) {
+      uiState.celebrated = true;
+      launchConfetti();
+    }
   }
 
   /* ── Smart Actions（引导提示按钮 — 列方程模式隐藏） ── */
@@ -1761,6 +1938,12 @@ function render() {
   const hasUnsolved = done && gameState.mode === 'level' &&
     (clearCount < allLevels.length || gameState.levelIdx < allLevels.length - 1);
   $('next').disabled = !hasUnsolved;
+
+  // 下一关引导箭头
+  if (hasUnsolved) showNextArrow(); else removeNextArrow();
+
+  // 第一关教学引导
+  renderTutorial();
 }
 
 /* ═══════════════════════════════════════════

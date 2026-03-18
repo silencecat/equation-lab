@@ -174,6 +174,7 @@ const dict = {
     /* 提示引导 */
     hint_title:      '👆 试试看！',
     hint_move_msg:   '把闪烁的卡片拖到另一边去吧！',
+    tut_drag_hint:   '长按 +2 拖到右边试试！',
     hint_tool_msg:   '在工具栏输入闪烁的数字，把闪烁的运算按钮拖到等号上！',
     hint_expand_msg: '点击闪烁的「展开」按钮！',
     tool_label:      '两边同时',
@@ -369,6 +370,7 @@ const dict = {
     /* ヒント */
     hint_title:      '👆 やってみよう！',
     hint_move_msg:   'ひかっているカードを反対がわにドラッグしよう！',
+    tut_drag_hint:   '+2 を長おしして右がわにドラッグしよう！',
     hint_tool_msg:   'ツールバーにひかっている数字を入れて、ひかっているボタンを等号にドラッグしよう！',
     hint_expand_msg: 'ひかっている「ひらく」ボタンをおそう！',
     tool_label:      '両がわ同時',
@@ -564,6 +566,7 @@ const dict = {
     /* Hints */
     hint_title:      '👆 Try it!',
     hint_move_msg:   'Drag the blinking card to the other side!',
+    tut_drag_hint:   'Hold +2 and drag it to the right side!',
     hint_tool_msg:   'Enter the blinking number in the toolbar, then drag the blinking button onto the equals sign!',
     hint_expand_msg: 'Tap the blinking "Expand" button!',
     tool_label:      'Both sides',
