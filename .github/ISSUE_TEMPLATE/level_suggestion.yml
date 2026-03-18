@@ -1,0 +1,31 @@
+name: Level Suggestion
+description: Suggest a new level or improvement to an existing one
+title: "[Level] "
+labels: ["enhancement", "content"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for a new level or want to improve an existing one? Let us know!
+  - type: input
+    id: chapter
+    attributes:
+      label: Related chapter (if any)
+      placeholder: "e.g. Chapter 5: Fractions"
+    validations:
+      required: false
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Your suggestion
+      description: Describe the level idea or improvement.
+    validations:
+      required: true
+  - type: textarea
+    id: equation
+    attributes:
+      label: Example equation (optional)
+      description: "If you have a specific equation in mind, write it here."
+      placeholder: "e.g. 2(x+3) = 14"
+    validations:
+      required: false

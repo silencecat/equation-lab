@@ -1,0 +1,34 @@
+name: Learning Feedback
+description: Share your learning experience or teaching feedback
+title: "[Feedback] "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We'd love to hear about your experience using Equation Lab for learning or teaching!
+  - type: dropdown
+    id: role
+    attributes:
+      label: I am a…
+      options:
+        - Student
+        - Teacher / Parent
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Your feedback
+      description: What worked well? What could be improved? Any suggestions?
+    validations:
+      required: true
+  - type: input
+    id: level-range
+    attributes:
+      label: Levels played
+      description: Which levels or chapters did you try?
+      placeholder: "e.g. Chapters 1–5, all levels"
+    validations:
+      required: false

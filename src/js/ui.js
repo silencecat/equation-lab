@@ -17,12 +17,16 @@ import {
 } from './engine.js';
 import { chapters, flattenLevels } from './levels.js';
 import { getCoachTip } from './coach.js';
-import { t, lt, setLocale, getLocale, applyStaticI18n } from './i18n.js';
+import { t, lt, setLocale, getLocale, applyStaticI18n, initLocale } from './i18n.js';
+import { loadState, getState, updateState } from './state.js';
 
 /* ═══════════════════════════════════════════
    DOM 辅助
    ═══════════════════════════════════════════ */
 const $ = (id) => document.getElementById(id);
+
+/* GitHub Issues 基础 URL（推送到 GitHub 后填写实际地址） */
+const ISSUES_URL = 'https://github.com/nicepkg/equation-lab/issues/new';
 
 /* ═══════════════════════════════════════════
    全局状态
@@ -294,15 +298,13 @@ function startAnim(result, op, expandInfo, toolInfo) {
    关卡完成追踪
    ═══════════════════════════════════════════ */
 
-const CLEARED_KEY = 'eqlab_cleared';
 function getClearedSet() {
-  try { return new Set(JSON.parse(localStorage.getItem(CLEARED_KEY) || '[]')); }
-  catch { return new Set(); }
+  return new Set(getState().progress.clearedLevelIds);
 }
 function markCleared(idx) {
   const s = getClearedSet();
   s.add(idx);
-  try { localStorage.setItem(CLEARED_KEY, JSON.stringify([...s])); } catch {}
+  updateState('progress.clearedLevelIds', [...s]);
 }
 
 /* ═══════════════════════════════════════════
@@ -1791,6 +1793,8 @@ function bindToolCard(id, op) {
    ═══════════════════════════════════════════ */
 
 export function init() {
+  loadState();
+  initLocale();
   bindEvents();
   loadLevel(0);
 
@@ -1821,20 +1825,35 @@ export function init() {
   if (resetProg) {
     resetProg.addEventListener('click', () => {
       if (!confirm(t('reset_confirm'))) return;
-      try { localStorage.removeItem(CLEARED_KEY); } catch {}
+      try { updateState('progress.clearedLevelIds', []); } catch {}
       loadLevel(0);
     });
   }
 
+  /* ── 反馈按钮 ── */
+  document.querySelectorAll('.feedback-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tpl = btn.dataset.tpl;
+      const lvInfo = gameState.mode === 'level'
+        ? allLevels[gameState.levelIdx]?.id || ''
+        : 'sandbox';
+      const params = new URLSearchParams({
+        template: tpl + '.yml',
+        level: lvInfo,
+        language: getLocale(),
+      });
+      window.open(`${ISSUES_URL}?${params}`, '_blank', 'noopener');
+    });
+  });
+
   /* ── 新手引导 ── */
-  const ONBOARD_KEY = 'eqlab_onboard_done';
   const overlay = document.getElementById('onboard');
-  if (overlay && !localStorage.getItem(ONBOARD_KEY)) {
+  if (overlay && !getState().learning.seenOnboarding) {
     overlay.style.display = '';
     const dismiss = document.getElementById('onboardDismiss');
     const close = () => {
       overlay.classList.add('hide');
-      localStorage.setItem(ONBOARD_KEY, '1');
+      updateState('learning.seenOnboarding', true);
       setTimeout(() => overlay.remove(), 350);
     };
     if (dismiss) dismiss.addEventListener('click', close);

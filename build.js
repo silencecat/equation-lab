@@ -54,9 +54,10 @@ html = html.replace(scriptRegex, inlineScript);
 
 /* ── 4. 写入 dist/ ── */
 mkdirSync(DIST, { recursive: true });
-const outPath = resolve(DIST, 'equation_lab.html');
-writeFileSync(outPath, html, 'utf-8');
+writeFileSync(resolve(DIST, 'equation_lab.html'), html, 'utf-8');
+writeFileSync(resolve(DIST, 'index.html'), html, 'utf-8');
 
 const sizeKB = (Buffer.byteLength(html, 'utf-8') / 1024).toFixed(1);
-console.log(`✅ 构建完成 → dist/equation_lab.html (${sizeKB} KB)`);
-console.log('   可以直接双击打开，不需要服务器。');
+console.log(`✅ 构建完成 → dist/equation_lab.html + dist/index.html (${sizeKB} KB)`);
+console.log('   equation_lab.html: 本地双击打开');
+console.log('   index.html: GitHub Pages 部署用');

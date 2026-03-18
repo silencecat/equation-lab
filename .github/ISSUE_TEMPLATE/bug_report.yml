@@ -1,0 +1,45 @@
+name: Bug Report
+description: Report something that isn't working correctly
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please provide as much detail as you can.
+  - type: input
+    id: level
+    attributes:
+      label: Level / Context
+      description: Which level were you playing, or were you in Sandbox mode?
+      placeholder: "e.g. Level 3-2 or Sandbox"
+    validations:
+      required: false
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      description: Which language were you using?
+      placeholder: "e.g. 中文, 日本語, English"
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug you encountered.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: false
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & Device
+      placeholder: "e.g. Chrome 126 on Windows, Safari on iPad"
+    validations:
+      required: false

@@ -1,24 +1,30 @@
 /**
- * i18n.js — 国际化（中文 / 日本語）
+ * i18n.js — 国际化（中文 / 日本語 / English）
  *
  * 提供 t(key, ...args) 和 lt(obj) 两种翻译方式。
- * t() 用于固定 UI 字符串，lt() 用于 {zh, ja} 内联对象（如关卡数据）。
+ * t() 用于固定 UI 字符串，lt() 用于 {zh, ja, en} 内联对象（如关卡数据）。
  */
 
-const STORAGE_KEY = 'eqlab_lang';
+import { getState, updateState } from './state.js';
+
 let _locale = 'zh';
-try {
-  const s = localStorage.getItem(STORAGE_KEY);
-  if (s === 'ja') _locale = 'ja';
-} catch { /* Node / test 环境安全 */ }
+
+/** 从 state 读取 locale（启动时由 ui.js 调 loadState 后执行） */
+export function initLocale() {
+  try {
+    const s = getState().profile.locale;
+    if (s === 'ja' || s === 'en') _locale = s;
+  } catch { /* Node / test 环境安全 */ }
+}
 
 export function getLocale() { return _locale; }
 
 export function setLocale(lang) {
   _locale = lang;
-  try { localStorage.setItem(STORAGE_KEY, lang); } catch {}
+  updateState('profile.locale', lang);
   if (typeof document !== 'undefined') {
-    document.documentElement.lang = lang === 'ja' ? 'ja' : 'zh-CN';
+    document.documentElement.lang =
+      lang === 'ja' ? 'ja' : lang === 'en' ? 'en' : 'zh-CN';
   }
 }
 
@@ -239,6 +245,12 @@ const dict = {
     reset_progress: '清除进度',
     reset_confirm:  '确定要清除所有通关记录吗？',
     next_unsolved:  '跳到下一个未通关的关卡',
+
+    /* 反馈 */
+    feedback_title:    '反馈',
+    feedback_bug:      '🐛 报告问题',
+    feedback_level:    '💡 建议新题',
+    feedback_learning: '📝 学习反馈',
   },
 
   /* ───────── 日本語 ───────── */
@@ -417,5 +429,195 @@ const dict = {
     reset_progress: '記録リセット',
     reset_confirm:  'クリア記録をぜんぶ消してもいい？',
     next_unsolved:  '次のまだクリアしてないステージへ',
+
+    /* フィードバック */
+    feedback_title:    'フィードバック',
+    feedback_bug:      '🐛 バグを報告',
+    feedback_level:    '💡 新しい問題を提案',
+    feedback_learning: '📝 学習フィードバック',
+  },
+
+  /* ───────── English ───────── */
+  en: {
+    /* General UI */
+    app_title:    'Equation Lab',
+    app_desc:     'Drag cards to transform equations. Works with touch and mouse.',
+    level_track:  'Levels',
+    play_track:   'Sandbox',
+    load_custom:  'Load custom equation',
+    random_btn:   'Random problem',
+    sample:       'Example {0}',
+    input_hint:   'Supports <code>x</code>, integers, fractions, and one layer of multiplier brackets, e.g. <code>2(x+1)</code>, <code>1/2x+1</code>.',
+    rules_title:  'Rules',
+    rule_1:       'When a card crosses the equals sign, it flips to the opposite term.',
+    rule_2:       'To place something inside <code>2( )</code>, it is first halved so the value stays the same.',
+    rule_3:       'When you see a fractional coefficient like <code>1/2x</code>, you can multiply both sides by <code>2</code>.',
+    recent_title: 'Recent moves',
+    tool_value:   'Tool value',
+    undo_btn:     'Undo',
+    reset_level:  'Reset level',
+    reset_play:   'Reset sandbox',
+    next_btn:     'Next level',
+    current_eq:   'Current equation',
+    left_side:    'Left side',
+    right_side:   'Right side',
+    smart_title:  'Suggested next step',
+    eq_hint_1:    'Drag a tool card here',
+    eq_hint_2:    'Apply to both sides',
+    drop_title:   'Drop zones',
+    drop_note_1:  'The vertical bar means insert on this side.',
+    drop_note_2:  'The green bracket means absorb into the multiplier group.',
+    visual_title: 'Story diagram',
+    visual_note_1:'The blue box is the unknown <code>x</code>.',
+    visual_note_2:'Orange blocks are fixed amounts.',
+    visual_note_3:'The green crate wraps things inside a multiplier.',
+    design_title: 'Design notes',
+    design_note_1:'Levels teach step by step; the sandbox is for free experimentation.',
+    design_note_2:'"Flipping the sign when crossing the equals sign" is equivalent transformation.',
+    design_note_3:'"Scaling when entering a bracket" is equivalent transformation.',
+
+    /* Onboarding */
+    onboard_title:   'Welcome to Equation Lab!',
+    onboard_sub:     'Learn in 3 steps, then try it yourself',
+    onboard_s1:      '<strong>Drag a card</strong> — Hold a number or variable card and drag it to the other side. Crossing the equals sign automatically flips the sign.',
+    onboard_s2:      '<strong>Hint button</strong> — Not sure what to do? Tap the hint button to highlight the next step, but you still do the actual move.',
+    onboard_s3:      '<strong>Menu</strong> — Tap ☰ at the top-left to switch levels, try sandbox mode, or read the rules.',
+    onboard_dismiss: 'Got it — let\'s go!',
+
+    /* Status messages */
+    log_loaded:     'New level loaded. Look at the equation first, then start moving.',
+    status_reset_t: 'Level reset',
+    status_reset_m: 'Drag a card to try. Crossing the equals sign flips the sign; entering a multiplier bracket scales the value.',
+    play_loaded:    'Sandbox loaded. Try different moves freely.',
+    play_start_t:   'Sandbox started',
+    play_start_m:   'Your equation is loaded. Experiment away!',
+    play_reset_t:   'Sandbox reset',
+    play_reset_m:   'Back to the starting state. Try a different path.',
+    play_return_t:  'Sandbox restored',
+    play_return_m:  'Continue experimenting with your equation.',
+    play_return_log:'Returned to sandbox.',
+    parse_err:      'Could not parse the custom equation',
+    rand_log:       'Random problem generated. Observe the structure before deciding to drag or use the toolbox.',
+    rand_t:         'Random problem loaded',
+    rand_m:         'No fixed solution path — compare different approaches.',
+    tool_invalid:   'Invalid tool value',
+    div_zero:       'Cannot divide by 0',
+    div_zero_m:     'Please enter a non-zero number in the toolbox.',
+    tool_done:      'Toolbox operation applied',
+    step_ok:        'This step is valid',
+    drag_fail:      'Drag source lost',
+    drag_fail_m:    'Please drag again.',
+    undone_t:       'Undone one step',
+    undone_m:       'Restored to the previous state.',
+    undo_log:       'Undo: back one step.',
+    solved_t:       'You isolated the unknown!',
+    solved_next:    'Press "Next level" to keep practicing.',
+    solved_correct: 'x = {0}  Correct!',
+    solved_all:     'All levels cleared!',
+    solved_log:     'Success: the unknown is isolated.',
+    no_smart:       'No fixed next step. Feel free to drag or try the toolbox for both-sides operations.',
+    n_items:        '{0} items',
+    ch_prog:        'Chapter {0} · Level {1}',
+    unknown_box:    'Unknown box',
+    number_block:   'Number block',
+    expand_btn:     'Expand',
+    expand_hint:    'Entering here first scales by the multiplier',
+    empty_group:    'Drag a card here. It will be scaled by the outer multiplier.',
+    empty_side:     'This side is now empty (= 0).',
+    bracket_done:   'Bracket expanded',
+
+    /* Smart Actions */
+    move_to:       'Move {0} to the {1}',
+    move_note:     'Clear the constants next to x first.',
+    both_mul_neg1: 'Multiply both sides by −1',
+    both_div:      'Divide both sides by {0}',
+    both_mul:      'Multiply both sides by {0}',
+    norm_div_note: 'Divide {0} to get a single x.',
+    norm_mul_note: 'Turn {0} into one whole x.',
+    neg1_note:     'First turn −x into +x.',
+    expand_left:   'Expand left bracket',
+    expand_right:  'Expand right bracket',
+    expand_note:   'Distribute the multiplication into the bracket.',
+
+    /* Hints */
+    hint_title:      '👆 Try it!',
+    hint_move_msg:   'Drag the blinking card to the other side!',
+    hint_tool_msg:   'Enter the blinking number in the toolbar, then drag the blinking button onto the equals sign!',
+    hint_expand_msg: 'Tap the blinking "Expand" button!',
+    tool_label:      'Both sides',
+
+    /* Build mode */
+    build_tray:      'Available cards',
+    build_return:    'Drag here to remove',
+    build_drop_here: 'Drag a card here',
+    build_goal:      'Read the story, place cards on the correct side',
+    build_done_t:    'Equation correct!',
+    build_done_m:    'You successfully translated the story into an equation.',
+    build_coach_t:   'Build hint',
+    build_coach_m:   'Read carefully: words like "total" and "remaining" indicate the result, usually on the other side of the equals sign.',
+
+    /* Engine text */
+    cross_note:      'Crossed the equals sign — flipped to the opposite term',
+    into_group_note: 'Scaled by the multiplier to enter {0}×( )',
+    dst_left:        'left side',
+    dst_right:       'right side',
+    dst_left_g:      'left multiplier bracket',
+    dst_right_g:     'right multiplier bracket',
+    action_drop:     'Dragged {0} to the {1}, got {2}. {3}',
+    action_expand:   'Expanded {0}×({1}) into {2}.',
+    tool_balance:    'Both sides {0}{1}, so the equation stays balanced.',
+    verb_add:        'plus ',
+    verb_sub:        'minus ',
+    verb_mul:        'times ',
+    verb_div:        'divided by ',
+
+    /* Coach */
+    coach_done_t:     'Coach summary',
+    coach_done_next:  'Level cleared! Press "Next level" to see how the same rules handle harder equations.',
+    coach_done_all:   'All levels cleared! Head to the sandbox and create your own problems.',
+    coach_play_t:     'Sandbox tip',
+    coach_play_group: 'There\'s no single right answer in the sandbox. Compare two approaches: expand first, or move outer constants first.',
+    coach_play_one:   'Only one unknown block. Clear its neighbors, then decide about the coefficient.',
+    coach_play_def:   'Pick a rule to test: moving terms, expanding, or multiplying/dividing both sides. The sandbox is about comparing paths.',
+    coach_advice:     'Coach advice',
+    coach_const:      'Move the constants on the same side as x to the other side first.',
+    coach_group:      'This problem has a multiplier bracket. Try dragging the outer constant into the bracket.',
+    coach_expand:     'Want to see how multiplication distributes? Click the "Expand" button on the bracket.',
+    coach_half_x:     'You see 1/2 x. Multiply both sides by 2 to turn half an x into a whole one.',
+    coach_frac_x:     'x is almost isolated. The last step is usually turning the coefficient into 1.',
+    coach_both_x:     'Both sides have x. Move one x to the other side to gather them together.',
+    coach_hint:       'Coach hint',
+    coach_default:    'Observe: which side has x? Which move makes x more alone?',
+
+    /* Random templates */
+    rand_const_t:   'Sandbox: random constant problem',
+    rand_const_s:   'Move constants to the other side and watch them combine.',
+    rand_coeff_t:   'Sandbox: random integer coefficient problem',
+    rand_coeff_s:   'Clear constants first, then divide to split the x\'s.',
+    rand_frac_t:    'Sandbox: random fraction problem',
+    rand_frac_s:    'Watch for the right moment to multiply both sides.',
+    rand_bracket_t: 'Sandbox: random bracket problem',
+    rand_bracket_s: 'Try dragging into the bracket, or expand first.',
+    play_default_t: 'Sandbox: free mode',
+    play_default_s: 'Enter your own equation and see how each step rewrites it.',
+    play_free_goal: 'Free experiment — no fixed answer',
+    play_custom_t:  'Sandbox: custom equation',
+    play_custom_s:  'This is the equation you entered.',
+    play_reloaded:  'Sandbox reloaded.',
+
+    /* Progress */
+    progress:       '{0}/{1} cleared',
+    steps_count:    '{0} steps this level',
+    all_clear_title:'🎉 All levels cleared!',
+    all_clear_msg:  'You\'ve mastered all the basic equation-transformation skills. Try the sandbox for tougher custom problems!',
+    reset_progress: 'Clear progress',
+    reset_confirm:  'Are you sure you want to clear all progress?',
+    next_unsolved:  'Jump to the next unsolved level',
+
+    /* Feedback */
+    feedback_title:    'Feedback',
+    feedback_bug:      '🐛 Report a bug',
+    feedback_level:    '💡 Suggest a level',
+    feedback_learning: '📝 Learning feedback',
   },
 };

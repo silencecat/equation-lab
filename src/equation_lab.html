@@ -441,6 +441,16 @@
       margin-bottom: 10px;
     }
 
+    /* ── 抽屉中的反馈按钮 ── */
+    .feedback-btns { display: flex; flex-direction: column; gap: 6px; }
+    .feedback-btn {
+      display: block; width: 100%; padding: 8px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--card-bg); color: var(--fg);
+      font-size: 14px; text-align: left; cursor: pointer;
+    }
+    .feedback-btn:hover { background: var(--accent-bg, #f0f4ff); }
+
     /* ── 抽屉中的关卡按钮 ── */
     .chapter-header {
       padding: 6px 8px; margin-top: 6px;
@@ -955,6 +965,7 @@
       <div class="lang-switch">
         <button class="langbtn active" data-lang="zh">中文</button>
         <button class="langbtn" data-lang="ja">日本語</button>
+        <button class="langbtn" data-lang="en">English</button>
       </div>
 
       <section class="dw-section" id="levelPanel">
@@ -986,6 +997,15 @@
         <div class="rule" data-i18n-html="rule_1">跨等号时，卡片会先变成相反项。</div>
         <div class="rule" data-i18n-html="rule_2">放进 <code>2( )</code> 里时，要先缩成一半，值才不变。</div>
         <div class="rule" data-i18n-html="rule_3">看到 <code>1/2x</code> 这种分数系数时，可以用两边同时 <code>×2</code>。</div>
+      </section>
+
+      <section class="dw-section" id="feedbackPanel">
+        <div class="dw-ttl" data-i18n="feedback_title">反馈</div>
+        <div class="feedback-btns">
+          <button type="button" class="feedback-btn" data-tpl="bug_report" data-i18n="feedback_bug">🐛 报告问题</button>
+          <button type="button" class="feedback-btn" data-tpl="level_suggestion" data-i18n="feedback_level">💡 建议新题</button>
+          <button type="button" class="feedback-btn" data-tpl="learning_feedback" data-i18n="feedback_learning">📝 学习反馈</button>
+        </div>
       </section>
     </aside>
   </div>
