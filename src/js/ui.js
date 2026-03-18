@@ -13,7 +13,8 @@ import {
   listText, sideText, simplify, simplifyTerms,
   termCount, firstTerm, loneFractionX, loneGroup,
   convertTerm, actionText, applyDrop, applyExpand,
-  applyToolOperation as engineToolOp, isSolved, solveForX,
+  applyToolOperation as engineToolOp, applyMerge as engineMerge,
+  isSolved, hasHiddenSigns, solveForX,
 } from './engine.js';
 import { chapters, flattenLevels } from './levels.js';
 import { getCoachTip } from './coach.js';
@@ -346,6 +347,15 @@ function isBuildMode() {
   return currentScene().type === 'build';
 }
 
+/** 获取当前关卡的引擎选项 */
+function sceneOptions() {
+  const s = currentScene();
+  const opts = {};
+  if (s.manualSimplify) opts.manualSimplify = true;
+  if (s.hideSign) opts.hideSign = true;
+  return opts;
+}
+
 /** 列方程模式：获取已放置的 tray 索引集合 */
 function getPlacedTrayIndices() {
   const placed = new Set();
@@ -538,7 +548,7 @@ function doToolOperation(op, value) {
   pushHistory();
   const origLeftLen = gameState.equation.left.items.length;
   const origRightLen = gameState.equation.right.items.length;
-  const result = engineToolOp(gameState.equation, op, value);
+  const result = engineToolOp(gameState.equation, op, value, sceneOptions());
   addLog(result.text);
   uiState.status = { k: '', t: t('tool_done'), m: result.text };
   const toolInfo = { op, value, origLeftLen, origRightLen };
@@ -610,7 +620,7 @@ function moveXAction(side) {
     label: t('move_to', signedHtml(term.c, term.s), otherSide === 'left' ? t('left_side') : t('right_side')),
     run: () => {
       pushHistory();
-      const result = applyDrop(gameState.equation, side, xIdx, target);
+      const result = applyDrop(gameState.equation, side, xIdx, target, sceneOptions());
       if (result) {
         gameState.equation = result.equation;
         addLog(result.text);
@@ -678,7 +688,7 @@ function getSmartActions() {
 function doExpandGroup(side, gi) {
   if (uiState.anim) finishAnim();
   pushHistory();
-  const result = applyExpand(gameState.equation, side, gi);
+  const result = applyExpand(gameState.equation, side, gi, sceneOptions());
   if (result) {
     addLog(result.text);
     uiState.status = { k: '', t: t('bracket_done'), m: result.text };
@@ -748,6 +758,8 @@ function endDrag() {
       executeTrayDrop(drag.trayIdx, activeDropZone.target);
     } else if (drag.kind === 'term' && isBuildMode() && activeDropZone.target.k === 'tray-trash') {
       executeBuildRemove(drag.side, drag.idx);
+    } else if (drag.kind === 'term' && activeDropZone.target.k === 'merge') {
+      executeMerge(activeDropZone.target);
     } else if (drag.kind === 'term') {
       executeDrop(activeDropZone.target);
     } else if (drag.kind === 'tool' && activeDropZone.target.k === 'tool') {
@@ -774,7 +786,7 @@ function executeDrop(target) {
   if (!drag || drag.kind !== 'term') return;
   if (uiState.anim) finishAnim();  // 上一个动画还在播放则立即结束
   pushHistory();
-  const result = applyDrop(gameState.equation, drag.side, drag.idx, target);
+  const result = applyDrop(gameState.equation, drag.side, drag.idx, target, sceneOptions());
   if (result) {
     addLog(result.text);
     uiState.status = { k: '', t: t('step_ok'), m: result.text };
@@ -787,6 +799,47 @@ function executeDrop(target) {
     uiState.status = { k: 'err', t: t('drag_fail'), m: t('drag_fail_m') };
     render();
   }
+}
+
+/** 手动合并同类项（manualSimplify 模式） */
+function executeMerge(target) {
+  const drag = uiState.drag;
+  if (!drag || drag.kind !== 'term') return;
+  if (uiState.anim) finishAnim();
+  pushHistory();
+  const result = engineMerge(gameState.equation, drag.side, drag.idx, target.idx);
+  if (result) {
+    gameState.equation = result.equation;
+    addLog(result.text);
+    uiState.status = { k: '', t: t('merge_done'), m: result.text };
+    // 标记合并结果用于高亮
+    if (result.mergedIdx >= 0) {
+      uiState.mergeFlash = { side: drag.side, idx: result.mergedIdx };
+    }
+    render();
+    // 清除高亮
+    setTimeout(() => { uiState.mergeFlash = null; }, 600);
+  }
+}
+
+/** 确认隐藏符号（hideSign 模式） */
+function confirmSign(side, idx, isPositive) {
+  const term = gameState.equation[side].items[idx];
+  if (!term || !term._signHidden) return;
+  const termIsPositive = term.c.n > 0;
+
+  if (isPositive === termIsPositive) {
+    delete term._signHidden;
+    addLog(t('sign_correct'));
+    uiState.status = { k: '', t: t('sign_correct'), m: '' };
+    // 若 manualSimplify 关闭且所有符号已确认，执行化简
+    if (!currentScene().manualSimplify && !hasHiddenSigns(gameState.equation)) {
+      gameState.equation = simplify(gameState.equation);
+    }
+  } else {
+    uiState.status = { k: 'err', t: t('sign_wrong'), m: t('sign_wrong_m') };
+  }
+  render();
 }
 
 /** 全局 pointer 事件 */
@@ -808,7 +861,12 @@ function onPointerMove(e) {
       const term = gameState.equation[fromSide].items[uiState.drag.idx];
       if (term && term.t === 'term') {
         if (onOtherSide) {
-          updateFloatChip({ t: 'term', s: term.s, c: fracNeg(term.c) });
+          if (currentScene().hideSign) {
+            // hideSign 模式：跨等号时显示 ? 而非变号后的值
+            updateFloatChipHidden(term);
+          } else {
+            updateFloatChip({ t: 'term', s: term.s, c: fracNeg(term.c) });
+          }
           uiState.drag.float.classList.add('sign-flip-flash');
         } else {
           updateFloatChip(term);
@@ -832,6 +890,17 @@ function onPointerMove(e) {
       const isTool = uiState.drag.kind === 'tool';
       const isToolZone = hit.target.k === 'tool';
       if (isTool !== isToolZone) hit = null;
+      // merge 区域过滤：只允许同侧同类项
+      if (hit?.target.k === 'merge' && uiState.drag.kind === 'term') {
+        const dragTerm = gameState.equation[uiState.drag.side]?.items[uiState.drag.idx];
+        const targetTerm = gameState.equation[hit.target.side]?.items[hit.target.idx];
+        if (!dragTerm || !targetTerm ||
+            uiState.drag.side !== hit.target.side ||
+            dragTerm.s !== targetTerm.s ||
+            uiState.drag.idx === hit.target.idx) {
+          hit = null;
+        }
+      }
     }
   }
 
@@ -872,6 +941,14 @@ function updateFloatChip(term) {
   f.className = 'chip drag-float ' + (term.s === 'x' ? 'x' : 'n');
   if (wasFlash) f.classList.add('sign-flip-flash');
   f.innerHTML = '<span>' + signedHtml(term.c, term.s) + '</span>';
+}
+
+/** hideSign 模式浮动预览：显示 ? 代替符号 */
+function updateFloatChipHidden(term) {
+  const f = uiState.drag?.float;
+  if (!f || uiState.drag.kind !== 'term') return;
+  f.className = 'chip drag-float ' + (term.s === 'x' ? 'x' : 'n');
+  f.innerHTML = '<span>?' + plainHtml(fracAbs(term.c), term.s) + '</span>';
 }
 
 /* ═══════════════════════════════════════════
@@ -947,6 +1024,10 @@ function createChip(side, it, idx) {
   if (uiState.hint?.type === 'move' && uiState.hint.side === side && uiState.hint.idx === idx) {
     d.classList.add('hint-glow');
   }
+  // 手动合并结果高亮
+  if (uiState.mergeFlash && uiState.mergeFlash.side === side && uiState.mergeFlash.idx === idx) {
+    d.classList.add('anim-merge-pop');
+  }
 
   // 动画阶段样式
   const anim = uiState.anim;
@@ -954,9 +1035,10 @@ function createChip(side, it, idx) {
     const merges = anim.merges[side] || [];
     const inMerge = merges.find(m => m.indices.includes(idx));
 
-    // 移项符号反转反馈
+    // 移项符号反转反馈（hideSign 时不显示，因为符号隐藏）
     if (anim.phase === 'appear' && anim.moveInfo?.signChanged
-        && side === anim.moveInfo.targetSide && idx === anim.moveInfo.targetIdx) {
+        && side === anim.moveInfo.targetSide && idx === anim.moveInfo.targetIdx
+        && !it._signHidden) {
       d.classList.add('anim-sign-flip');
     }
 
@@ -979,6 +1061,26 @@ function createChip(side, it, idx) {
   }
 
   const annotation = getAnnotation(side, idx);
+  const scene = currentScene();
+  const anyHidden = hasHiddenSigns(gameState.equation);
+
+  // ── hideSign: 符号隐藏渲染 ──
+  if (it._signHidden) {
+    d.classList.add('sign-hidden');
+    d.innerHTML =
+      '<span class="sign-q">?</span>' +
+      '<span>' + plainHtml(fracAbs(it.c), it.s) + '</span>' +
+      '<div class="sign-btns">' +
+        '<button class="sign-btn pos" type="button">+</button>' +
+        '<button class="sign-btn neg" type="button">\u2212</button>' +
+      '</div>';
+    d.querySelector('.sign-btn.pos').onclick = (e) => { e.stopPropagation(); confirmSign(side, idx, true); };
+    d.querySelector('.sign-btn.neg').onclick = (e) => { e.stopPropagation(); confirmSign(side, idx, false); };
+    d.style.touchAction = 'none';
+    d.draggable = false;
+    return d;
+  }
+
   d.innerHTML =
     '<span>' +
     signedHtml(it.c, it.s) +
@@ -987,8 +1089,13 @@ function createChip(side, it, idx) {
   d.style.touchAction = 'none'; // 防止触屏滚动
   d.draggable = false;            // 禁止原生拖拽
 
-  // 动画播放时禁止拖拽
-  if (!anim) {
+  // manualSimplify 模式：注册为合并落点
+  if (scene.manualSimplify && !anim) {
+    registerDropZone(d, { k: 'merge', side, idx });
+  }
+
+  // 动画播放时或隐藏符号待确认时禁止拖拽
+  if (!anim && !anyHidden) {
     d.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       d.setPointerCapture(e.pointerId);
@@ -1398,7 +1505,7 @@ function render() {
   if (scene.type === 'build') {
     done = !uiState.anim && equationsMatch(gameState.equation, scene.eq);
   } else {
-    done = !uiState.anim && isSolved(gameState.equation, target);
+    done = !uiState.anim && !hasHiddenSigns(gameState.equation) && isSolved(gameState.equation, target);
   }
   if (done && gameState.mode === 'level') markCleared(gameState.levelIdx);
 
@@ -1616,10 +1723,16 @@ function render() {
 
   /* ── 教练气泡 & 状态提示 ── */
   const coachEl = $('coach');
+  const anyHidden = hasHiddenSigns(gameState.equation);
   if (done) {
     coachEl.className = 'coach-bubble solved';
     coachEl.innerHTML = '<div class="coach-icon">🎉</div><div class="coach-body"><strong>' +
       uiState.status.t + '</strong><span>' + uiState.status.m + '</span></div>';
+  } else if (anyHidden) {
+    // 有隐藏符号时优先提示符号选择
+    coachEl.className = 'coach-bubble';
+    coachEl.innerHTML = '<div class="coach-icon">❓</div><div class="coach-body"><strong>' +
+      t('coach_sign_t') + '</strong><span>' + t('coach_sign_m') + '</span></div>';
   } else if (uiState.hint) {
     // 显示提示引导消息
     const hintMsg = uiState.hint.type === 'move'  ? t('hint_move_msg')

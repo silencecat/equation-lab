@@ -2,3 +2,5 @@ node_modules/
 dist/
 test-results/
 package-lock.json
+
+all_files_dump.txt

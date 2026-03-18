@@ -193,14 +193,21 @@ export function actionText(from, target, to, notes) {
 
 /**
  * 执行拖拽放置（纯数据操作）
+ * @param {object} [options]  { manualSimplify, hideSign }
  * @returns {{ equation, text }}  新等式 + 描述文本
  */
-export function applyDrop(equation, fromSide, fromIdx, target) {
+export function applyDrop(equation, fromSide, fromIdx, target, options) {
   const eq = clone(equation);
   const term = eq[fromSide].items[fromIdx];
   if (!term || term.t !== 'term') return null;
 
   const result = convertTerm(term, fromSide, target, eq);
+  const crossEquals = fromSide !== target.side;
+
+  // hideSign: 跨等号移项时隐藏符号
+  if (options?.hideSign && crossEquals && target.k === 'side') {
+    result.term._signHidden = true;
+  }
 
   // 移除原项
   eq[fromSide].items.splice(fromIdx, 1);
@@ -216,18 +223,20 @@ export function applyDrop(equation, fromSide, fromIdx, target) {
   }
 
   const raw = clone(eq);           // 未化简的中间态
-  const simplified = simplify(eq);
+  const skipSimplify = options?.manualSimplify || (options?.hideSign && crossEquals);
+  const simplified = skipSimplify ? clone(eq) : simplify(eq);
   const text = actionText(term, target, result.term, result.notes);
-  const signChanged = fromSide !== target.side;
+  const signChanged = crossEquals;
   const moveInfo = { targetSide: target.side, targetIdx: insertAt, signChanged };
   return { equation: simplified, raw, text, moveInfo };
 }
 
 /**
  * 展开括号
+ * @param {object} [options]  { manualSimplify }
  * @returns {{ equation, text }}
  */
-export function applyExpand(equation, side, gi) {
+export function applyExpand(equation, side, gi, options) {
   const eq = clone(equation);
   const group = eq[side].items[gi];
   if (!group || group.t !== 'group') return null;
@@ -240,7 +249,7 @@ export function applyExpand(equation, side, gi) {
 
   eq[side].items.splice(gi, 1, ...expanded);
   const raw = clone(eq);           // 未化简的中间态
-  const simplified = simplify(eq);
+  const simplified = options?.manualSimplify ? clone(eq) : simplify(eq);
 
   const expandedStr = expanded
     .map((x, i) => {
@@ -263,9 +272,10 @@ export function applyExpand(equation, side, gi) {
 /**
  * 两边同时做工具箱操作（加/减/乘/除）
  * @param {'add'|'sub'|'mul'|'div'} op
+ * @param {object} [options]  { manualSimplify }
  * @returns {{ equation, text }}
  */
-export function applyToolOperation(equation, op, value) {
+export function applyToolOperation(equation, op, value, options) {
   if (op === 'div' && isZero(value)) {
     return { equation: null, text: t('div_zero') };
   }
@@ -289,11 +299,49 @@ export function applyToolOperation(equation, op, value) {
   }
 
   const raw = clone(eq);           // 未化简的中间态
-  const simplified = simplify(eq);
+  const simplified = options?.manualSimplify ? clone(eq) : simplify(eq);
   const verb = t('verb_' + op);
   const text = t('tool_balance', verb, fracStr(value));
 
   return { equation: simplified, raw, text };
+}
+
+/**
+ * 手动合并两个同类项（manualSimplify 模式）
+ * @returns {{ equation, raw, text, mergedIdx }}
+ */
+export function applyMerge(equation, side, fromIdx, toIdx) {
+  const eq = clone(equation);
+  const from = eq[side].items[fromIdx];
+  const to = eq[side].items[toIdx];
+  if (!from || !to || from.t !== 'term' || to.t !== 'term' || from.s !== to.s) return null;
+
+  const merged = { t: 'term', s: from.s, c: fracAdd(from.c, to.c) };
+  const raw = clone(eq);
+
+  if (isZero(merged.c)) {
+    const lo = Math.min(fromIdx, toIdx);
+    const hi = Math.max(fromIdx, toIdx);
+    eq[side].items.splice(hi, 1);
+    eq[side].items.splice(lo, 1);
+  } else {
+    eq[side].items[toIdx] = merged;
+    eq[side].items.splice(fromIdx, 1);
+  }
+
+  const text = t('action_merge', signedText(from.c, from.s), signedText(to.c, to.s));
+  let mergedIdx = isZero(merged.c) ? -1 : (fromIdx < toIdx ? toIdx - 1 : toIdx);
+  return { equation: eq, raw, text, mergedIdx };
+}
+
+/** 检查等式中是否有隐藏符号的项 */
+export function hasHiddenSigns(equation) {
+  for (const side of [equation.left, equation.right]) {
+    for (const it of side.items) {
+      if (it._signHidden) return true;
+    }
+  }
+  return false;
 }
 
 /**

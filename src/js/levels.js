@@ -221,6 +221,7 @@ export const chapters = [
           left:  { items: [{ t:'term', s:'x', c:{ n:1, d:1 } }, { t:'term', s:'n', c:{ n:4, d:1 } }, { t:'term', s:'n', c:{ n:-1, d:1 } }] },
           right: { items: [{ t:'term', s:'n', c:{ n:6, d:1 } }] },
         },
+        manualSimplify: true,
       },
       /* ── 2-5 build ── */
       {
@@ -344,6 +345,7 @@ export const chapters = [
           left:  { items: [{ t:'term', s:'x', c:{ n:3, d:1 } }, { t:'term', s:'n', c:{ n:2, d:1 } }] },
           right: { items: [{ t:'term', s:'n', c:{ n:11, d:1 } }] },
         },
+        manualSimplify: true,
       },
       /* ── 3-4 build ── */
       {
@@ -863,6 +865,8 @@ export const chapters = [
           },
           right: { items: [{ t:'term', s:'n', c:{ n:8, d:1 } }] },
         },
+        manualSimplify: true,
+        hideSign: true,
       },
     ],
   },
@@ -963,6 +967,8 @@ export const chapters = [
           },
           right: { items: [{ t:'term', s:'x', c:{ n:1, d:1 } }, { t:'term', s:'n', c:{ n:5, d:1 } }] },
         },
+        manualSimplify: true,
+        hideSign: true,
       },
       /* ── 7-5 ── */
       {
@@ -988,6 +994,8 @@ export const chapters = [
           },
           right: { items: [{ t:'term', s:'x', c:{ n:2, d:1 } }, { t:'term', s:'n', c:{ n:5, d:1 } }] },
         },
+        manualSimplify: true,
+        hideSign: true,
       },
     ],
   },

@@ -251,6 +251,17 @@ const dict = {
     feedback_bug:      '🐛 报告问题',
     feedback_level:    '💡 建议新题',
     feedback_learning: '📝 学习反馈',
+
+    /* 手动合并 & 符号选择 */
+    action_merge:      '{0} 与 {1} 合并',
+    merge_done:        '合并完成',
+    sign_correct:      '符号正确！',
+    sign_wrong:        '符号不对',
+    sign_wrong_m:      '移过等号后符号会变，再想想吧。',
+    coach_merge_t:     '提示',
+    coach_merge_m:     '这一关需要你手动合并同类项——把一张同类卡片拖到另一张上。',
+    coach_sign_t:      '注意符号',
+    coach_sign_m:      '移过等号后符号会变，请选择正确的 +/−。',
   },
 
   /* ───────── 日本語 ───────── */
@@ -435,6 +446,17 @@ const dict = {
     feedback_bug:      '🐛 バグを報告',
     feedback_level:    '💡 新しい問題を提案',
     feedback_learning: '📝 学習フィードバック',
+
+    /* 手動合体 & 符号選択 */
+    action_merge:      '{0} と {1} を合体',
+    merge_done:        '合体完了',
+    sign_correct:      '正解！',
+    sign_wrong:        'ちがうよ',
+    sign_wrong_m:      '等号をこえると符号が変わるよ。もう一度考えてみてね。',
+    coach_merge_t:     'ヒント',
+    coach_merge_m:     'このステージは同類項を手動で合体しよう——同じ種類のカードを重ねてね。',
+    coach_sign_t:      '符号に注意',
+    coach_sign_m:      '等号をこえたら符号が変わるよ。正しい +/− を選んでね。',
   },
 
   /* ───────── English ───────── */
@@ -619,5 +641,16 @@ const dict = {
     feedback_bug:      '🐛 Report a bug',
     feedback_level:    '💡 Suggest a level',
     feedback_learning: '📝 Learning feedback',
+
+    /* Manual merge & sign choice */
+    action_merge:      'Merged {0} and {1}',
+    merge_done:        'Merged!',
+    sign_correct:      'Correct sign!',
+    sign_wrong:        'Wrong sign',
+    sign_wrong_m:      'The sign flips when crossing the equals sign. Think again.',
+    coach_merge_t:     'Hint',
+    coach_merge_m:     'Drag one like-term card onto another to merge them.',
+    coach_sign_t:      'Watch the sign',
+    coach_sign_m:      'The sign changes when crossing = sign. Pick the correct +/−.',
   },
 };
