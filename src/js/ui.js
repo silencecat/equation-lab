@@ -429,6 +429,34 @@ function randomInt(a, b) {
 function openDrawer() { $('drawerOverlay').classList.add('open'); }
 function closeDrawer() { $('drawerOverlay').classList.remove('open'); }
 
+function getTheme() {
+  return getState().profile?.theme === 'playful' ? 'playful' : 'lab';
+}
+
+function applyTheme(theme = getTheme()) {
+  document.documentElement.dataset.theme = theme;
+}
+
+function refreshThemeButton() {
+  const btn = $('themeToggle');
+  if (!btn) return;
+  btn.textContent = getTheme() === 'lab' ? t('theme_cta_playful') : t('theme_cta_lab');
+  btn.title = t('theme_toggle');
+}
+
+function toggleTheme() {
+  const next = getTheme() === 'lab' ? 'playful' : 'lab';
+  updateState('profile.theme', next);
+  applyTheme(next);
+  refreshThemeButton();
+  uiState.status = {
+    k: '',
+    t: t('theme_switched_t'),
+    m: t('theme_switched_m', t(next === 'playful' ? 'theme_playful' : 'theme_lab')),
+  };
+  render();
+}
+
 /* ═══════════════════════════════════════════
    加载
    ═══════════════════════════════════════════ */
@@ -1722,6 +1750,12 @@ function render() {
   $('reset').textContent =
     gameState.mode === 'play' ? t('reset_play') : t('reset_level');
 
+  document.documentElement.dataset.chapter =
+    gameState.mode === 'level'
+      ? `ch${allLevels[gameState.levelIdx].chapterIdx + 1}`
+      : 'sandbox';
+  refreshThemeButton();
+
   /* ── 标题栏 ── */
   $('title').textContent = resolveText(scene.title);
   $('subtitle').textContent = resolveText(scene.sub);
@@ -2092,6 +2126,8 @@ function bindToolCard(id, op) {
 export function init() {
   loadState();
   initLocale();
+  applyTheme();
+  refreshThemeButton();
   bindEvents();
   loadLevel(0);
 
@@ -2113,9 +2149,13 @@ export function init() {
       };
       uiState.logs = [t('log_loaded')];
       document.title = t('app_title');
+      refreshThemeButton();
       render();
     });
   });
+
+  const themeToggle = $('themeToggle');
+  if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
 
   /* ── 清除进度 ── */
   const resetProg = document.getElementById('resetProgress');

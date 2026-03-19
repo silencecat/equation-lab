@@ -12,13 +12,84 @@
       --brand: #116b60;
       --warm: #bb6b2c;
       --blue: #1b6383;
+      --page-bg: linear-gradient(150deg, #faf6ed, #ece1cb);
+      --surface-soft: rgba(255,250,240,.92);
+      --goal-bg: #daf0ea;
+      --goal-text: #145b50;
+      --story-bg: linear-gradient(135deg, #fef9ef, #fdf3e0);
+      --story-border: #f0d9a8;
+      --story-text: #4a3f2f;
+      --eq-bg: linear-gradient(180deg, #fffdf8, #f8f0df);
+      --half-bg: rgba(255,255,255,.74);
+      --chip-bg: #fff;
+      --chip-x-bg: #eef7fb;
+      --chip-x-border: #bfd9e7;
+      --chip-n-bg: #fff4e7;
+      --chip-n-border: #e5caab;
+      --group-bg: #eef9f5;
+      --group-border: #c9ddd4;
+      --group-inner-bg: rgba(255,255,255,.5);
+      --toolbar-border: #e6d8bd;
+      --drawer-bg: #fffdf6;
+      --theme-btn-bg: rgba(255,250,240,.92);
+      --theme-btn-text: #2b2418;
+      --theme-btn-shadow: none;
+      --chapter-accent: #116b60;
+      --chapter-soft: #daf0ea;
+      --chapter-ink: #145b50;
+      --chapter-border: #b8ddd6;
     }
+    html[data-theme="playful"] {
+      --line: #dfbfdc;
+      --text: #37233c;
+      --muted: #775f80;
+      --brand: #d94e86;
+      --warm: #eb7a3b;
+      --blue: #4867d8;
+      --page-bg: radial-gradient(circle at top, #fff3a7 0%, #ffd7e8 36%, #e1edff 72%, #fbf6ff 100%);
+      --surface-soft: rgba(255,255,255,.88);
+      --goal-bg: linear-gradient(90deg, #ffd66b, #ffb9d6);
+      --goal-text: #7b2450;
+      --story-bg: linear-gradient(135deg, #fff7b6, #ffd8ea 58%, #fff9f2);
+      --story-border: #f4b4cd;
+      --story-text: #56324f;
+      --eq-bg: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,240,250,.82));
+      --half-bg: rgba(255,255,255,.86);
+      --chip-bg: #fffafc;
+      --chip-x-bg: #edf2ff;
+      --chip-x-border: #b7c8ff;
+      --chip-n-bg: #fff3e8;
+      --chip-n-border: #f2c4a1;
+      --group-bg: #fff0f8;
+      --group-border: #efb7d5;
+      --group-inner-bg: rgba(255,255,255,.74);
+      --toolbar-border: #efc4db;
+      --drawer-bg: linear-gradient(180deg, #fff8fc, #fffef7);
+      --theme-btn-bg: linear-gradient(135deg, #ffdf78, #ffa9cf);
+      --theme-btn-text: #7b2450;
+      --theme-btn-shadow: 0 10px 24px rgba(217,78,134,.22);
+    }
+    html[data-chapter="ch1"] { --chapter-accent: #2e8f7b; --chapter-soft: #dcf6ef; --chapter-ink: #17695b; --chapter-border: #b7e3d9; }
+    html[data-chapter="ch2"] { --chapter-accent: #d36a34; --chapter-soft: #fff0db; --chapter-ink: #8b4a24; --chapter-border: #f0c7a6; }
+    html[data-chapter="ch3"] { --chapter-accent: #3a72c7; --chapter-soft: #e3eeff; --chapter-ink: #234e96; --chapter-border: #bfd0f4; }
+    html[data-chapter="ch4"] { --chapter-accent: #7b66d1; --chapter-soft: #ede7ff; --chapter-ink: #5340a0; --chapter-border: #d2c9f5; }
+    html[data-chapter="ch5"] { --chapter-accent: #cf5d8d; --chapter-soft: #ffe4f0; --chapter-ink: #8d335f; --chapter-border: #efbfd3; }
+    html[data-chapter="ch6"] { --chapter-accent: #308f5d; --chapter-soft: #ddf7e7; --chapter-ink: #1e6941; --chapter-border: #b7e1c9; }
+    html[data-chapter="ch7"] { --chapter-accent: #b45fbb; --chapter-soft: #f5e5fb; --chapter-ink: #74367c; --chapter-border: #e0bde9; }
+    html[data-chapter="ch8"] { --chapter-accent: #d45c5c; --chapter-soft: #ffe3e3; --chapter-ink: #8d3030; --chapter-border: #efbcbc; }
+    html[data-chapter="ch9"] { --chapter-accent: #4f7fd8; --chapter-soft: #e5eeff; --chapter-ink: #294e9f; --chapter-border: #c0d0f2; }
+    html[data-chapter="ch10"] { --chapter-accent: #2f9aa3; --chapter-soft: #def7f7; --chapter-ink: #1f6970; --chapter-border: #b5e2e3; }
+    html[data-chapter="ch11"] { --chapter-accent: #c2773e; --chapter-soft: #fff0e2; --chapter-ink: #7d4b22; --chapter-border: #ecc8a9; }
+    html[data-chapter="sandbox"] { --chapter-accent: #5c6ac4; --chapter-soft: #e7ebff; --chapter-ink: #33408d; --chapter-border: #c7cff5; }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font: 15px/1.5 "Trebuchet MS", "PingFang SC", "Microsoft YaHei", sans-serif;
       color: var(--text);
-      background: linear-gradient(150deg, #faf6ed, #ece1cb);
+      background:
+        radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--chapter-soft) 78%, transparent) 0%, transparent 52%),
+        linear-gradient(180deg, color-mix(in srgb, var(--chapter-soft) 24%, transparent), transparent 32%),
+        var(--page-bg);
       min-height: 100vh;
       overscroll-behavior: none;
     }
@@ -32,14 +103,23 @@
     /* ── 顶栏 ── */
     .topbar {
       display: flex; align-items: center; gap: 10px;
+      padding: 6px 10px;
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 75%, white);
+      border-radius: 22px;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 78%, white), rgba(255,255,255,.72));
+      box-shadow: 0 10px 28px color-mix(in srgb, var(--chapter-accent) 12%, transparent);
     }
     .menu-btn {
       width: 44px; height: 44px; border: 1px solid var(--line);
-      border-radius: 14px; background: rgba(255,250,240,.92);
+      border-radius: 14px; background: color-mix(in srgb, var(--chapter-soft) 72%, white);
       font-size: 20px; cursor: pointer; flex-shrink: 0;
-      display: grid; place-items: center; color: var(--text);
+      display: grid; place-items: center; color: var(--chapter-ink);
+      box-shadow: 0 8px 18px color-mix(in srgb, var(--chapter-accent) 16%, transparent);
     }
     .topbar-info { flex: 1; min-width: 0; }
+    .topbar-actions {
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    }
     .topbar-title {
       font-size: 17px; font-weight: 800; line-height: 1.3;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -50,26 +130,46 @@
     }
     .topbar-badge {
       flex-shrink: 0; padding: 5px 12px;
-      border-radius: 999px; background: rgba(255,250,240,.92);
-      border: 1px solid var(--line); font: 700 12px/1.3 sans-serif;
-      color: var(--muted); white-space: nowrap;
+      border-radius: 999px; background: var(--surface-soft);
+      border: 1px solid var(--chapter-border); font: 700 12px/1.3 sans-serif;
+      color: var(--chapter-ink); white-space: nowrap;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.35);
+    }
+    .theme-toggle {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 86px; height: 36px; padding: 0 12px;
+      border-radius: 999px; border: 1px solid color-mix(in srgb, var(--chapter-border) 80%, white);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 72%, white), color-mix(in srgb, var(--chapter-accent) 24%, white));
+      color: var(--chapter-ink);
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--chapter-accent) 20%, transparent);
+      font: 800 12px/1 sans-serif; cursor: pointer; white-space: nowrap;
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+      filter: saturate(1.05);
     }
 
     /* ── 目标横幅 ── */
     .goal-banner {
       text-align: center; padding: 9px 16px;
       border-radius: 999px; font-weight: 800; font-size: 14px;
-      background: #daf0ea; color: #145b50;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--chapter-soft) 88%, white), color-mix(in srgb, var(--chapter-accent) 20%, white));
+      color: var(--chapter-ink);
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 85%, white);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.45),
+        0 8px 18px color-mix(in srgb, var(--chapter-accent) 18%, transparent);
     }
 
     /* ── 故事卡片（应用题） ── */
     .story-card {
       display: flex; align-items: flex-start; gap: 8px;
       padding: 12px 16px; border-radius: 16px;
-      background: linear-gradient(135deg, #fef9ef, #fdf3e0);
-      border: 1.5px solid #f0d9a8;
-      font-size: 14px; line-height: 1.65; color: #4a3f2f;
-      box-shadow: 0 2px 8px rgba(180,150,100,.12);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 42%, white), color-mix(in srgb, var(--story-bg) 78%, white));
+      border: 1.5px solid color-mix(in srgb, var(--story-border) 55%, var(--chapter-border));
+      font-size: 14px; line-height: 1.65; color: var(--story-text);
+      box-shadow: 0 6px 18px color-mix(in srgb, var(--chapter-accent) 12%, transparent);
       animation: storyFadeIn .35s ease-out;
     }
     .story-icon {
@@ -85,8 +185,13 @@
 
     /* ── 等式棋盘 ── */
     .eq-area {
-      padding: 14px; border: 1px solid var(--line); border-radius: 22px;
-      background: linear-gradient(180deg, #fffdf8, #f8f0df);
+      padding: 14px; border: 1px solid color-mix(in srgb, var(--chapter-border) 75%, var(--line)); border-radius: 22px;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--chapter-soft) 18%, transparent), transparent 24%),
+        var(--eq-bg);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.35),
+        0 12px 30px color-mix(in srgb, var(--chapter-accent) 12%, transparent);
     }
     .board {
       display: grid; grid-template-columns: 1fr 72px 1fr; gap: 8px;
@@ -94,7 +199,7 @@
     }
     .half {
       min-height: 150px; border: 1px solid #e6d8bd; border-radius: 18px;
-      background: rgba(255,255,255,.74); padding: 12px;
+      background: var(--half-bg); padding: 12px;
       display: grid; grid-template-rows: auto 1fr; gap: 8px;
       transition: min-height .3s ease;
     }
@@ -110,14 +215,14 @@
     .eqs { text-align: center; }
     .eqbox {
       width: 64px; height: 64px; border-radius: 20px;
-      border: 1px solid #d7ccb4; background: #fff;
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 80%, var(--line)); background: color-mix(in srgb, var(--chapter-soft) 22%, white);
       display: grid; place-items: center;
-      font-size: 32px; font-weight: 900; color: var(--brand); margin: 0 auto;
+      font-size: 32px; font-weight: 900; color: var(--chapter-accent); margin: 0 auto;
       transition: all .2s;
     }
     .eqbox.on {
-      border-color: var(--brand); background: #effaf6;
-      box-shadow: 0 0 18px rgba(17,107,96,.45);
+      border-color: var(--chapter-accent); background: color-mix(in srgb, var(--chapter-soft) 55%, white);
+      box-shadow: 0 0 18px color-mix(in srgb, var(--chapter-accent) 38%, transparent);
       transform: scale(1.12);
     }
 
@@ -125,14 +230,14 @@
     .chip {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 10px 14px; border-radius: 16px;
-      border: 1px solid #dccfb6; background: #fff;
+      border: 1px solid #dccfb6; background: var(--chip-bg);
       font: bold 22px/1 "Consolas", monospace;
       cursor: grab; user-select: none; touch-action: none;
       transition: opacity .18s, transform .18s;
     }
     .chip.drag { opacity: .28; transform: scale(.92); }
-    .chip.x { color: var(--blue); background: #eef7fb; border-color: #bfd9e7; }
-    .chip.n { color: var(--warm); background: #fff4e7; border-color: #e5caab; }
+    .chip.x { color: var(--blue); background: var(--chip-x-bg); border-color: var(--chip-x-border); }
+    .chip.n { color: var(--warm); background: var(--chip-n-bg); border-color: var(--chip-n-border); }
     .chip em.story-label,
     .group em.story-label {
       font: 600 10px/1 sans-serif; color: #b07830; font-style: normal;
@@ -224,7 +329,7 @@
     .group {
       display: inline-flex; align-items: center; gap: 0;
       padding: 8px 12px; border-radius: 16px;
-      border: 1px solid #c9ddd4; background: #eef9f5;
+      border: 1px solid var(--group-border); background: var(--group-bg);
       font: bold 22px/1 "Consolas", monospace;
       color: var(--brand); cursor: default;
       user-select: none; touch-action: none;
@@ -239,7 +344,7 @@
       display: inline-flex; align-items: baseline; gap: 0;
       padding: 0 2px;
       border: 1px dashed rgba(17,107,96,.35); border-radius: 8px;
-      background: rgba(255,255,255,.5);
+      background: var(--group-inner-bg);
       min-width: 24px; min-height: 28px;
       transition: background .15s;
     }
@@ -291,10 +396,13 @@
     .coach-bubble {
       display: flex; gap: 10px; align-items: flex-start;
       padding: 12px 14px; border-radius: 18px;
-      background: #f4f8ff; border: 1px solid #d2deef;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 48%, white), rgba(255,255,255,.82));
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 78%, white);
+      box-shadow: 0 8px 20px color-mix(in srgb, var(--chapter-accent) 10%, transparent);
     }
     .coach-bubble.solved {
-      background: #effaf6; border-color: #cfe7de;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 64%, white), #f6fffb);
+      border-color: color-mix(in srgb, var(--chapter-border) 85%, white);
     }
     .coach-icon {
       flex-shrink: 0; font-size: 22px; line-height: 1;
@@ -317,7 +425,7 @@
     .tool-row {
       display: flex; gap: 6px; justify-content: center;
       align-items: center; margin-top: 10px; padding: 10px 0 2px;
-      border-top: 1px dashed #e6d8bd;
+      border-top: 1px dashed var(--toolbar-border);
     }
     .tool-label {
       font: 700 12px/1 sans-serif; color: var(--muted);
@@ -360,14 +468,17 @@
     .smartrow { display: grid; gap: 8px; }
     .smartbtn {
       width: 100%; padding: 14px 16px; border-radius: 16px;
-      border: 2px solid rgba(17,107,96,.18); background: #fff;
-      font: 800 15px/1.3 sans-serif; color: #145b50;
+      border: 2px solid color-mix(in srgb, var(--chapter-border) 82%, white);
+      background: linear-gradient(135deg, rgba(255,255,255,.95), color-mix(in srgb, var(--chapter-soft) 46%, white));
+      font: 800 15px/1.3 sans-serif; color: var(--chapter-ink);
       cursor: pointer; text-align: center;
       transition: all .15s;
+      box-shadow: 0 8px 18px color-mix(in srgb, var(--chapter-accent) 10%, transparent);
     }
     .smartbtn::before { content: '💡 '; }
     .smartbtn:hover, .smartbtn:active {
-      background: #effaf6; border-color: var(--brand);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 72%, white), rgba(255,255,255,.96));
+      border-color: var(--chapter-accent);
       transform: scale(1.01);
     }
     .smartempty {
@@ -381,15 +492,17 @@
     }
     .bottom-bar button {
       flex: 1; padding: 12px 10px;
-      border: 1px solid var(--line); border-radius: 14px;
-      background: rgba(255,250,240,.92); cursor: pointer;
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 72%, var(--line)); border-radius: 14px;
+      background: color-mix(in srgb, var(--chapter-soft) 28%, white); cursor: pointer;
       font: 700 13px/1.3 sans-serif; color: var(--text);
       transition: opacity .15s;
+      box-shadow: 0 8px 18px color-mix(in srgb, var(--chapter-accent) 8%, transparent);
     }
     .bottom-bar button:disabled { opacity: .35; cursor: not-allowed; }
     .btn-next {
-      background: #daf0ea !important; color: #145b50 !important;
-      border-color: #c4ddd4 !important;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 78%, white), color-mix(in srgb, var(--chapter-accent) 16%, white)) !important;
+      color: var(--chapter-ink) !important;
+      border-color: color-mix(in srgb, var(--chapter-border) 86%, white) !important;
     }
 
     /* ── 抽屉菜单 ── */
@@ -403,7 +516,7 @@
     .drawer {
       position: absolute; left: 0; top: 0; bottom: 0;
       width: 320px; max-width: 85vw;
-      background: #fffdf6; padding: 18px;
+      background: var(--drawer-bg); padding: 18px;
       overflow-y: auto; overscroll-behavior: contain;
       transform: translateX(-100%);
       transition: transform .25s ease;
@@ -480,8 +593,9 @@
     }
     .progress-fill {
       position: absolute; left: 0; top: 0; bottom: 0;
-      background: linear-gradient(90deg, var(--brand), #1fa88e);
+      background: linear-gradient(90deg, var(--chapter-accent), color-mix(in srgb, var(--chapter-accent) 60%, white));
       border-radius: 999px; transition: width .5s ease;
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--chapter-accent) 25%, transparent), 0 6px 12px color-mix(in srgb, var(--chapter-accent) 18%, transparent);
     }
     .progress-text {
       position: relative; z-index: 1;
@@ -905,6 +1019,7 @@
       .tool-label { display: none; }
       .bottom-bar button { padding: 10px 6px; font-size: 12px; }
       .topbar-badge { padding: 4px 8px; font-size: 11px; }
+      .theme-toggle { min-width: 64px; padding: 0 10px; font-size: 11px; }
       .coach-icon { font-size: 18px; }
       .eq-area { padding: 8px; border-radius: 16px; }
       .onboard-card { padding: 16px 14px; }
@@ -999,7 +1114,10 @@
         <div id="title" class="topbar-title"></div>
         <div id="subtitle" class="topbar-sub"></div>
       </div>
-      <div id="prog" class="topbar-badge"></div>
+      <div class="topbar-actions">
+        <button id="themeToggle" class="theme-toggle" type="button" data-i18n="theme_toggle">切换主题</button>
+        <div id="prog" class="topbar-badge"></div>
+      </div>
     </header>
 
     <div id="goal" class="goal-banner"></div>

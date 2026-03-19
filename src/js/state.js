@@ -11,7 +11,7 @@ const STATE_KEY = 'eqlab_state_v1';
 function defaultState() {
   return {
     version: 1,
-    profile:  { locale: 'zh' },
+    profile:  { locale: 'zh', theme: 'lab' },
     progress: { clearedLevelIds: [], currentLevelId: '' },
     learning: { seenOnboarding: false, lastPlayedAt: null },
     meta:     { schemaVersion: 1 },
@@ -24,6 +24,9 @@ function migrate() {
   try {
     const lang = localStorage.getItem('eqlab_lang');
     if (lang === 'ja' || lang === 'en') state.profile.locale = lang;
+
+    const theme = localStorage.getItem('eqlab_theme');
+    if (theme === 'lab' || theme === 'playful') state.profile.theme = theme;
 
     const cleared = localStorage.getItem('eqlab_cleared');
     if (cleared) {
@@ -51,6 +54,7 @@ export function loadState() {
       for (const k of Object.keys(def)) {
         if (!_state[k]) _state[k] = def[k];
       }
+      if (!_state.profile.theme) _state.profile.theme = def.profile.theme;
     }
   } catch { /* ignore */ }
 
@@ -94,6 +98,7 @@ export function updateState(path, value) {
 function syncLegacyKeys() {
   try {
     localStorage.setItem('eqlab_lang', _state.profile.locale);
+    localStorage.setItem('eqlab_theme', _state.profile.theme || 'lab');
     localStorage.setItem('eqlab_cleared', JSON.stringify(_state.progress.clearedLevelIds));
     if (_state.learning.seenOnboarding) localStorage.setItem('eqlab_onboard_done', '1');
   } catch {}

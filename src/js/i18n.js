@@ -78,6 +78,9 @@ const dict = {
     play_track:   '实验线',
     load_custom:  '载入自定义等式',
     random_btn:   '随机来一题',
+    theme_toggle: '切换主题',
+    theme_cta_playful: '活力一下',
+    theme_cta_lab: '回到实验室',
     sample:       '样例 {0}',
     input_hint:   '支持 <code>△</code>、整数、分数、以及一层倍数括号，例如 <code>2(△+1)</code>、<code>1/2△+1</code>。',
     rules_title:  '规则',
@@ -237,6 +240,10 @@ const dict = {
     play_custom_t:  '实验线：自定义等式',
     play_custom_s:  '这是你自己输入的等式。',
     play_reloaded:  '实验线已重载。',
+    theme_switched_t: '主题已切换',
+    theme_switched_m: '现在是 {0}。如果孩子更喜欢这套风格，就先用它继续闯关。',
+    theme_lab: '实验室主题',
+    theme_playful: '活力主题',
 
     /* 进度 & 步数 */
     progress:       '{0}/{1} 已通关',
@@ -274,6 +281,9 @@ const dict = {
     play_track:   '実験モード',
     load_custom:  '自分の等式を読みこむ',
     random_btn:   'ランダム出題',
+    theme_toggle: 'テーマ切替',
+    theme_cta_playful: 'にぎやかに',
+    theme_cta_lab: 'ラボにもどる',
     sample:       'サンプル {0}',
     input_hint:   '<code>△</code>、整数、分数、かけ算かっこがつかえるよ。れい: <code>2(△+1)</code>、<code>1/2△+1</code>',
     rules_title:  'ルール',
@@ -433,6 +443,10 @@ const dict = {
     play_custom_t:  '実験：自分の等式',
     play_custom_s:  '自分で入力した等式だよ。',
     play_reloaded:  '実験モードを読みなおしたよ。',
+    theme_switched_t: 'テーマを切り替えたよ',
+    theme_switched_m: '今は {0}。こちらの見た目のほうが合えば、そのまま続けてみよう。',
+    theme_lab: 'ラボテーマ',
+    theme_playful: 'にぎやかテーマ',
 
     /* 進み・ステップ */
     progress:       '{0}/{1} クリア',
@@ -470,6 +484,9 @@ const dict = {
     play_track:   'Sandbox',
     load_custom:  'Load custom equation',
     random_btn:   'Random problem',
+    theme_toggle: 'Theme',
+    theme_cta_playful: 'Make it lively',
+    theme_cta_lab: 'Back to lab',
     sample:       'Example {0}',
     input_hint:   'Supports <code>x</code>, integers, fractions, and one layer of multiplier brackets, e.g. <code>2(x+1)</code>, <code>1/2x+1</code>.',
     rules_title:  'Rules',
@@ -629,6 +646,10 @@ const dict = {
     play_custom_t:  'Sandbox: custom equation',
     play_custom_s:  'This is the equation you entered.',
     play_reloaded:  'Sandbox reloaded.',
+    theme_switched_t: 'Theme switched',
+    theme_switched_m: 'You are now using {0}. If this style feels better, keep learning with it.',
+    theme_lab: 'Lab theme',
+    theme_playful: 'Playful theme',
 
     /* Progress */
     progress:       '{0}/{1} cleared',

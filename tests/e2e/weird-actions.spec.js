@@ -32,6 +32,15 @@ test.describe('weird actions', () => {
   test('language switch, invalid input, free mode tools, and feedback popup all work', async ({ page }) => {
     const browserErrors = await openApp(page);
 
+    await page.locator('#themeToggle').click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'playful');
+    await expect.poll(async () => page.evaluate(() => {
+      const raw = localStorage.getItem('eqlab_state_v1');
+      return raw ? JSON.parse(raw).profile.theme : '';
+    })).toBe('playful');
+    await page.locator('#themeToggle').click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'lab');
+
     await openDrawer(page);
     await page.evaluate(() => document.querySelector('.langbtn[data-lang="en"]').click());
     await expect(page.locator('#goal')).not.toHaveText('');
