@@ -80,6 +80,8 @@
     html[data-chapter="ch9"] { --chapter-accent: #4f7fd8; --chapter-soft: #e5eeff; --chapter-ink: #294e9f; --chapter-border: #c0d0f2; }
     html[data-chapter="ch10"] { --chapter-accent: #2f9aa3; --chapter-soft: #def7f7; --chapter-ink: #1f6970; --chapter-border: #b5e2e3; }
     html[data-chapter="ch11"] { --chapter-accent: #c2773e; --chapter-soft: #fff0e2; --chapter-ink: #7d4b22; --chapter-border: #ecc8a9; }
+    html[data-chapter="ch0"] { --chapter-accent: #5ca8b8; --chapter-soft: #e1f5f8; --chapter-ink: #2e6e7c; --chapter-border: #b3dce4; }
+    html[data-chapter="ch5b"] { --chapter-accent: #d1884a; --chapter-soft: #fff3e3; --chapter-ink: #8a5628; --chapter-border: #ebc8a0; }
     html[data-chapter="sandbox"] { --chapter-accent: #5c6ac4; --chapter-soft: #e7ebff; --chapter-ink: #33408d; --chapter-border: #c7cff5; }
     * { box-sizing: border-box; }
     body {
@@ -993,6 +995,50 @@
     }
     .onboard-dismiss:hover { background: #0e5a50; }
 
+    /* ══ 门控浮层（gate） ══ */
+    .gate-overlay {
+      position: fixed; inset: 0; z-index: 9000;
+      background: rgba(30,24,12,.52);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 0 16px 48px;
+      animation: fadeIn .3s ease-out;
+    }
+    .gate-overlay.hide {
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+    }
+    .gate-card {
+      background: #fffdf6; border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(30,24,12,.3);
+      padding: 22px 24px 18px; max-width: 420px; width: 100%;
+      text-align: center;
+      animation: gateSlideUp .35s cubic-bezier(.22,.68,.36,1);
+    }
+    @keyframes gateSlideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+    .gate-icon { font-size: 28px; margin-bottom: 6px; }
+    .gate-question {
+      font-size: 16px; font-weight: 700; color: var(--brand);
+      margin: 0 0 14px; line-height: 1.4;
+    }
+    .gate-options { display: flex; flex-direction: column; gap: 8px; }
+    .gate-opt {
+      border: 2px solid var(--border); border-radius: 12px;
+      background: var(--bg); color: var(--text);
+      padding: 10px 16px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all .15s;
+    }
+    .gate-opt:hover { border-color: var(--brand); background: var(--brand-light, #e8f5f0); }
+    .gate-opt.correct {
+      border-color: #16a34a; background: #dcfce7; color: #15803d;
+      animation: gatePop .3s ease-out;
+    }
+    .gate-opt.wrong {
+      border-color: #ef4444; background: #fee2e2; color: #b91c1c;
+      animation: gateShake .35s;
+    }
+    @keyframes gatePop { 0%{transform:scale(1)} 50%{transform:scale(1.04)} 100%{transform:scale(1)} }
+    @keyframes gateShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+
     /* ── 响应式：流式缩放 ── */
     .app { padding: clamp(6px,2vw,14px) clamp(8px,2.5vw,14px) 28px; }
     .chip { font-size: clamp(16px, 4vw, 22px); padding: clamp(6px,1.8vw,10px) clamp(8px,2.4vw,14px); }
@@ -1101,12 +1147,191 @@
       from { opacity: 0; transform: scale(.9); }
       to   { opacity: 1; transform: scale(1); }
     }
+
+    /* ══════════════════════════════════════
+       首页 · 旅程选择
+       ══════════════════════════════════════ */
+    .home {
+      max-width: 480px; margin: 0 auto;
+      padding: 32px 18px 24px;
+      display: flex; flex-direction: column; gap: 16px;
+      min-height: 100vh;
+    }
+    .home-head { text-align: center; }
+    .home-title {
+      margin: 0; font-size: 26px; font-weight: 800;
+      color: var(--brand);
+    }
+    .home-desc {
+      margin: 4px 0 0; font-size: 13px; color: var(--muted);
+    }
+    .home-journeys { display: flex; flex-direction: column; gap: 10px; }
+
+    /* 旅程卡片 */
+    .journey-card {
+      position: relative; overflow: hidden;
+      border-radius: 18px; padding: 16px 16px 14px;
+      cursor: pointer;
+      border: 1.5px solid var(--jc-border, var(--line));
+      background: var(--jc-bg);
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .journey-card:active { transform: scale(.98); }
+    .journey-card-top {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .journey-icon { font-size: 28px; flex-shrink: 0; }
+    .journey-info { flex: 1; min-width: 0; }
+    .journey-name {
+      font-size: 16px; font-weight: 700;
+      color: var(--jc-ink, var(--text));
+      margin: 0;
+    }
+    .journey-desc {
+      font-size: 12px; color: var(--jc-muted, var(--muted));
+      margin: 2px 0 0; line-height: 1.4;
+    }
+    .journey-badge {
+      font-size: 13px; font-weight: 700;
+      color: var(--jc-accent); white-space: nowrap;
+    }
+    .journey-bar {
+      margin-top: 10px; height: 6px; border-radius: 99px;
+      background: rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+    .journey-bar-fill {
+      height: 100%; border-radius: 99px;
+      background: var(--jc-accent);
+      transition: width .4s ease-out;
+    }
+    .journey-card.completed .journey-badge::after {
+      content: ' ✓'; color: var(--jc-accent);
+    }
+
+    /* 首页底部 */
+    .home-footer {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; flex-wrap: wrap; margin-top: auto; padding-top: 8px;
+    }
+    .home-sandbox {
+      background: var(--surface-soft); border: 1px solid var(--line);
+      border-radius: 14px; padding: 8px 18px;
+      font-size: 14px; color: var(--text); cursor: pointer;
+    }
+    .home-lang { display: flex; gap: 4px; }
+    .home-langbtn { font-size: 12px; padding: 4px 10px; }
+    .home-theme-toggle { font-size: 12px; }
+
+    /* ══════════════════════════════════════
+       改造后的抽屉 · 手风琴
+       ══════════════════════════════════════ */
+    .drawer-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--brand); color: #fff; border: none;
+      border-radius: 8px; padding: 7px 16px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      margin-bottom: 10px; width: 100%; justify-content: center;
+      transition: opacity .15s;
+    }
+    .drawer-back:hover { opacity: .85; }
+    .drawer-journey-title {
+      font-size: 15px; font-weight: 700; color: var(--brand);
+      margin: 0 0 8px;
+    }
+    /* 章节手风琴 */
+    .accordion-chapter { margin-bottom: 6px; }
+    .accordion-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 12px;
+      cursor: pointer; user-select: none;
+      background: rgba(0,0,0,.03);
+      border: 1px solid transparent;
+      transition: background .15s;
+    }
+    .accordion-header:hover { background: rgba(0,0,0,.06); }
+    .accordion-arrow {
+      font-size: 10px; color: var(--muted);
+      transition: transform .2s;
+      flex-shrink: 0;
+    }
+    .accordion-chapter.open .accordion-arrow { transform: rotate(90deg); }
+    .accordion-ch-name {
+      flex: 1; font-size: 13px; font-weight: 600;
+      color: var(--text); white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .accordion-ch-prog {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      white-space: nowrap;
+    }
+    .accordion-body {
+      display: none; padding: 6px 6px 4px 18px;
+    }
+    .accordion-chapter.open .accordion-body { display: block; }
+
+    /* 关卡节点（紧凑） */
+    .level-nodes { display: flex; flex-wrap: wrap; gap: 6px; }
+    .level-node {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      border: 2px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform .1s, box-shadow .1s;
+      position: relative;
+    }
+    .level-node:active { transform: scale(.92); }
+    .level-node.cleared {
+      background: var(--chapter-accent, var(--brand));
+      border-color: var(--chapter-accent, var(--brand));
+      color: #fff;
+    }
+    .level-node.active {
+      box-shadow: 0 0 0 3px rgba(17,107,96,.3);
+      border-color: var(--brand);
+    }
+    .level-node-tip {
+      display: none;
+      position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%);
+      background: rgba(30,24,12,.88); color: #fff;
+      padding: 4px 8px; border-radius: 8px;
+      font-size: 11px; font-weight: 400;
+      white-space: nowrap; pointer-events: none;
+      z-index: 10;
+    }
+    .level-node:hover .level-node-tip,
+    .level-node:focus .level-node-tip { display: block; }
   </style>
 </head>
 <body>
 
+  <!-- ====== 首页：旅程选择 ====== -->
+  <div class="home" id="homeView">
+    <header class="home-head">
+      <h1 class="home-title" data-i18n="app_title">等式实验室</h1>
+      <p class="home-desc" data-i18n="app_desc">拖卡片，亲手做等式变形。支持触屏和鼠标。</p>
+    </header>
+    <div class="home-journeys" id="homeJourneys">
+      <!-- JS 动态渲染旅程卡片 -->
+    </div>
+    <div class="home-footer">
+      <button class="home-sandbox" id="homeSandbox" type="button" data-i18n="home_sandbox">🔬 自由实验</button>
+      <div class="home-lang">
+        <button class="langbtn home-langbtn active" data-lang="zh">中文</button>
+        <button class="langbtn home-langbtn" data-lang="ja">日本語</button>
+        <button class="langbtn home-langbtn" data-lang="en">EN</button>
+      </div>
+      <button id="homeThemeToggle" class="theme-toggle home-theme-toggle" type="button" data-i18n="theme_toggle">切换主题</button>
+    </div>
+  </div>
+
   <!-- ====== 主界面（单列聚焦） ====== -->
-  <div class="app">
+  <div class="app" id="appView" style="display:none">
 
     <header class="topbar">
       <button class="menu-btn" id="menuBtn" type="button">☰</button>
@@ -1227,6 +1452,15 @@
         </div>
       </section>
     </aside>
+  </div>
+
+  <!-- ====== 门控浮层 ====== -->
+  <div id="gateOverlay" class="gate-overlay" style="display:none">
+    <div class="gate-card">
+      <div class="gate-icon" id="gateIcon"></div>
+      <p class="gate-question" id="gateQuestion"></p>
+      <div class="gate-options" id="gateOptions"></div>
+    </div>
   </div>
 
   <!-- ====== 新手引导 ====== -->

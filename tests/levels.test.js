@@ -29,9 +29,9 @@ describe('章节结构', () => {
     });
   });
 
-  it('共 11 章 60 关', () => {
-    expect(chapters.length).toBe(11);
-    expect(allLevels.length).toBe(60);
+  it('共 13 章 66 关', () => {
+    expect(chapters.length).toBe(13);
+    expect(allLevels.length).toBe(66);
   });
 });
 
@@ -80,5 +80,29 @@ describe('target 与 solveForX 一致', () => {
     const solved = solveForX(lv.eq);
     expect(solved).not.toBeNull();
     expect(fracEq(solved, lv.target)).toBe(true);
+  });
+});
+
+describe('gate 门控校验', () => {
+  const gateLevels = allLevels.filter(({ lv }) => lv.gate);
+
+  it(`共有 ${gateLevels.length} 个带 gate 的关卡`, () => {
+    expect(gateLevels.length).toBeGreaterThan(0);
+  });
+
+  it.each(gateLevels)('$label: gate 结构完整', ({ lv }) => {
+    const g = lv.gate;
+    expect(['predict', 'pickUnknown']).toContain(g.type);
+    expect(g.question.zh).toBeTruthy();
+    expect(g.question.ja).toBeTruthy();
+    expect(g.question.en).toBeTruthy();
+    expect(g.options.length).toBeGreaterThanOrEqual(2);
+    const correctCount = g.options.filter(o => o.correct).length;
+    expect(correctCount).toBe(1);
+    g.options.forEach((opt, i) => {
+      expect(opt.text.zh, `option[${i}].text.zh`).toBeTruthy();
+      expect(opt.text.ja, `option[${i}].text.ja`).toBeTruthy();
+      expect(opt.text.en, `option[${i}].text.en`).toBeTruthy();
+    });
   });
 });

@@ -16,7 +16,7 @@ import {
   applyToolOperation as engineToolOp, applyMerge as engineMerge,
   isSolved, hasHiddenSigns, solveForX,
 } from './engine.js';
-import { chapters, flattenLevels } from './levels.js';
+import { chapters, flattenLevels, journeys } from './levels.js';
 import { getCoachTip } from './coach.js';
 import { t, lt, setLocale, getLocale, applyStaticI18n, initLocale } from './i18n.js';
 import { loadState, getState, updateState } from './state.js';
@@ -35,12 +35,14 @@ const ISSUES_URL = 'https://github.com/silencecat/equation-lab/issues/new';
 const allLevels = flattenLevels();
 
 const gameState = {
-  mode: 'level',         // 'level' | 'play'
+  mode: 'home',          // 'home' | 'level' | 'play'
+  journeyId: null,       // 当前所在旅程 ID (e.g. 'j1')
   levelIdx: 0,           // 当前关卡在 allLevels 中的索引
   equation: null,        // 当前等式
   custom: null,          // 实验线自定义场景
   history: [],           // 撤销栈
   steps: 0,              // 当前关卡步数
+  gateOpen: false,       // 门控浮层是否打开
 };
 
 const uiState = {
@@ -311,9 +313,9 @@ function startAnim(result, op, expandInfo, toolInfo) {
 function getClearedSet() {
   return new Set(getState().progress.clearedLevelIds);
 }
-function markCleared(idx) {
+function markCleared(levelId) {
   const s = getClearedSet();
-  s.add(idx);
+  s.add(levelId);
   updateState('progress.clearedLevelIds', [...s]);
 }
 
@@ -429,6 +431,92 @@ function randomInt(a, b) {
 function openDrawer() { $('drawerOverlay').classList.add('open'); }
 function closeDrawer() { $('drawerOverlay').classList.remove('open'); }
 
+/* ═══════════════════════════════════════════
+   首页 & 旅程导航
+   ═══════════════════════════════════════════ */
+
+/** 获取某旅程覆盖的 allLevels 索引范围 */
+function journeyLevelRange(jid) {
+  const j = journeys.find(x => x.id === jid);
+  if (!j) return [];
+  const chSet = new Set(j.chapters);
+  return allLevels.reduce((arr, lv, i) => {
+    if (chSet.has(lv.chapterId)) arr.push(i);
+    return arr;
+  }, []);
+}
+
+/** 根据当前关卡索引推断所属旅程 */
+function detectJourney(idx) {
+  const chId = allLevels[idx]?.chapterId;
+  if (!chId) return null;
+  return journeys.find(j => j.chapters.includes(chId))?.id ?? null;
+}
+
+/** 显示首页 */
+function showHome() {
+  gameState.mode = 'home';
+  gameState.journeyId = null;
+  removeNextArrow();
+  clearTutorial();
+  dismissGate();
+  if ($('homeView')) $('homeView').style.display = '';
+  if ($('appView')) $('appView').style.display = 'none';
+  closeDrawer();
+  renderHome();
+}
+
+/** 进入旅程：加载该旅程第一个未通关的关卡 */
+function enterJourney(jid) {
+  gameState.journeyId = jid;
+  const range = journeyLevelRange(jid);
+  if (!range.length) return;
+  const cleared = getClearedSet();
+  // 找第一个未通关
+  let target = range.find(i => !cleared.has(allLevels[i].id));
+  // 全通关了就加载第一关
+  if (target == null) target = range[0];
+  if ($('homeView')) $('homeView').style.display = 'none';
+  if ($('appView')) $('appView').style.display = '';
+  loadLevel(target);
+}
+
+/** 渲染首页旅程卡片 */
+function renderHome() {
+  const container = $('homeJourneys');
+  if (!container) return;
+  container.innerHTML = '';
+  const cleared = getClearedSet();
+
+  journeys.forEach(j => {
+    const range = journeyLevelRange(j.id);
+    const total = range.length;
+    const done = range.filter(i => cleared.has(allLevels[i].id)).length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const allDone = done === total && total > 0;
+
+    const card = document.createElement('div');
+    card.className = 'journey-card' + (allDone ? ' completed' : '');
+    card.style.setProperty('--jc-accent', j.color);
+    card.style.setProperty('--jc-bg', `linear-gradient(135deg, ${j.color}12, ${j.color}08)`);
+    card.style.setProperty('--jc-border', `${j.color}44`);
+    card.style.setProperty('--jc-ink', j.color);
+    card.style.setProperty('--jc-muted', 'var(--muted)');
+    card.innerHTML =
+      '<div class="journey-card-top">' +
+        '<span class="journey-icon">' + j.icon + '</span>' +
+        '<div class="journey-info">' +
+          '<div class="journey-name">' + lt(j.name) + '</div>' +
+          '<div class="journey-desc">' + lt(j.desc) + '</div>' +
+        '</div>' +
+        '<span class="journey-badge">' + t('journey_prog', done, total) + '</span>' +
+      '</div>' +
+      '<div class="journey-bar"><div class="journey-bar-fill" style="width:' + pct + '%"></div></div>';
+    card.onclick = () => enterJourney(j.id);
+    container.appendChild(card);
+  });
+}
+
 function getTheme() {
   return getState().profile?.theme === 'playful' ? 'playful' : 'lab';
 }
@@ -458,14 +546,61 @@ function toggleTheme() {
 }
 
 /* ═══════════════════════════════════════════
+   门控浮层（gate）
+   ═══════════════════════════════════════════ */
+
+function showGate(gate) {
+  gameState.gateOpen = true;
+  const overlay = $('gateOverlay');
+  if (!overlay) return;
+  overlay.style.display = '';
+  overlay.classList.remove('hide');
+  $('gateIcon').textContent = gate.type === 'predict' ? '🤔' : '🔍';
+  $('gateQuestion').textContent = lt(gate.question);
+  const optBox = $('gateOptions');
+  optBox.innerHTML = '';
+  gate.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'gate-opt';
+    btn.textContent = lt(opt.text);
+    btn.onclick = () => onGateAnswer(gate, i, btn);
+    optBox.appendChild(btn);
+  });
+}
+
+function onGateAnswer(gate, idx, btn) {
+  const opt = gate.options[idx];
+  if (opt.correct) {
+    btn.classList.add('correct');
+    setTimeout(dismissGate, 500);
+  } else {
+    btn.classList.add('wrong');
+    setTimeout(() => btn.classList.remove('wrong'), 400);
+  }
+}
+
+function dismissGate() {
+  gameState.gateOpen = false;
+  const overlay = $('gateOverlay');
+  if (!overlay) return;
+  overlay.classList.add('hide');
+  setTimeout(() => { overlay.style.display = 'none'; }, 280);
+}
+
+/* ═══════════════════════════════════════════
    加载
    ═══════════════════════════════════════════ */
 
 function loadLevel(idx) {
   closeDrawer();
   gameState.mode = 'level';
+  gameState.gateOpen = false;
   gameState.custom = null;
   gameState.levelIdx = idx;
+  // 自动推断旅程（如果还没设置）
+  if (!gameState.journeyId) gameState.journeyId = detectJourney(idx);
+  if ($('homeView')) $('homeView').style.display = 'none';
+  if ($('appView')) $('appView').style.display = '';
   const lv = allLevels[idx];
   if (lv.type === 'build') {
     // 列方程模式：空方程起步
@@ -486,12 +621,21 @@ function loadLevel(idx) {
     m: t('status_reset_m'),
   };
   render();
+
+  // 门控浮层：如果关卡配置了 gate，显示浮层
+  const gateConf = lv.gate;
+  if (gateConf && !getClearedSet().has(lv.id)) {
+    showGate(gateConf);
+  }
 }
 
 function loadPlayScene(scene, logText, statusTitle, statusMsg) {
   closeDrawer();
   gameState.mode = 'play';
   gameState.custom = scene;
+  gameState.journeyId = null;
+  if ($('homeView')) $('homeView').style.display = 'none';
+  if ($('appView')) $('appView').style.display = '';
   // 自动计算实验线的 target
   const autoTarget = solveForX(scene.eq);
   if (autoTarget) scene.target = autoTarget;
@@ -779,6 +923,7 @@ function hitTest(x, y) {
 let activeDropZone = null;
 
 function startDrag(info, floatEl, startX, startY) {
+  if (gameState.gateOpen) return;
   clearTutorial();
   uiState.drag = { ...info, float: floatEl };
   document.body.appendChild(floatEl);
@@ -1686,6 +1831,9 @@ function clearTutorial() {
    ═══════════════════════════════════════════ */
 
 function render() {
+  // 首页模式无需渲染游戏界面
+  if (gameState.mode === 'home') return;
+
   // 清除旧的落点注册
   clearDropZones();
 
@@ -1709,50 +1857,110 @@ function render() {
   } else {
     done = !uiState.anim && !hasHiddenSigns(gameState.equation) && isSolved(gameState.equation, target);
   }
-  if (done && gameState.mode === 'level') markCleared(gameState.levelIdx);
+  if (done && gameState.mode === 'level') markCleared(allLevels[gameState.levelIdx].id);
 
-  /* ── 侧边栏关卡列表 ── */
+  /* ── 侧边栏关卡列表（手风琴） ── */
   const cleared = getClearedSet();
   const clearCount = cleared.size;
 
   $('levels').innerHTML = '';
 
-  // 进度条
-  const progBar = document.createElement('div');
-  progBar.className = 'progress-bar';
-  progBar.innerHTML =
-    '<div class="progress-fill" style="width:' +
-    Math.round((clearCount / allLevels.length) * 100) + '%"></div>' +
-    '<span class="progress-text">' + t('progress', clearCount, allLevels.length) + '</span>';
-  $('levels').appendChild(progBar);
+  // 回首页按钮
+  const backBtn = document.createElement('button');
+  backBtn.className = 'drawer-back';
+  backBtn.textContent = t('back_home');
+  backBtn.onclick = () => { closeDrawer(); showHome(); };
+  $('levels').appendChild(backBtn);
 
-  chapters.forEach((ch, ci) => {
-    const header = document.createElement('div');
-    header.className = 'chapter-header';
-    header.innerHTML = '<strong>' + lt(ch.name) + '</strong><small>' + lt(ch.desc) + '</small>';
-    $('levels').appendChild(header);
+  // 当前旅程信息
+  const curJourney = journeys.find(j => j.id === gameState.journeyId);
+  if (curJourney) {
+    const jRange = journeyLevelRange(curJourney.id);
+    const jDone = jRange.filter(i => cleared.has(allLevels[i].id)).length;
+    const jTitle = document.createElement('div');
+    jTitle.className = 'drawer-journey-title';
+    jTitle.textContent = curJourney.icon + ' ' + lt(curJourney.name);
+    $('levels').appendChild(jTitle);
 
-    ch.levels.forEach((lv, li) => {
-      const globalIdx = allLevels.findIndex(
-        (a) => a.chapterIdx === ci && a.levelIdx === li,
-      );
-      const b = document.createElement('button');
-      b.className =
-        'level' +
-        (gameState.mode === 'level' && globalIdx === gameState.levelIdx ? ' active' : '') +
-        (cleared.has(globalIdx) ? ' cleared' : '');
-      b.innerHTML = lt(lv.title) + '<small>' + lt(lv.sub) + '</small>';
-      b.onclick = () => { closeDrawer(); loadLevel(globalIdx); };
-      $('levels').appendChild(b);
+    // 旅程进度条
+    const progBar = document.createElement('div');
+    progBar.className = 'progress-bar';
+    const jPct = jRange.length ? Math.round((jDone / jRange.length) * 100) : 0;
+    progBar.innerHTML =
+      '<div class="progress-fill" style="width:' + jPct + '%"></div>' +
+      '<span class="progress-text">' + t('progress', jDone, jRange.length) + '</span>';
+    $('levels').appendChild(progBar);
+
+    // 当前旅程的章节手风琴
+    const chSet = new Set(curJourney.chapters);
+    const curChId = gameState.mode === 'level' ? allLevels[gameState.levelIdx]?.chapterId : null;
+
+    chapters.forEach((ch, ci) => {
+      if (!chSet.has(ch.id)) return;
+      const isCurrentCh = ch.id === curChId;
+      const acc = document.createElement('div');
+      acc.className = 'accordion-chapter' + (isCurrentCh ? ' open' : '');
+
+      // 章节头
+      const chLevels = ch.levels;
+      const chDone = chLevels.reduce((n, _lv, li) => {
+        const gIdx = allLevels.findIndex(a => a.chapterIdx === ci && a.levelIdx === li);
+        return n + (cleared.has(allLevels[gIdx]?.id) ? 1 : 0);
+      }, 0);
+
+      const header = document.createElement('div');
+      header.className = 'accordion-header';
+      header.innerHTML =
+        '<span class="accordion-arrow">▶</span>' +
+        '<span class="accordion-ch-name">' + lt(ch.name) + '</span>' +
+        '<span class="accordion-ch-prog">' + chDone + '/' + chLevels.length + '</span>';
+      header.onclick = () => acc.classList.toggle('open');
+      acc.appendChild(header);
+
+      // 章节内容：紧凑节点
+      const body = document.createElement('div');
+      body.className = 'accordion-body';
+      const nodes = document.createElement('div');
+      nodes.className = 'level-nodes';
+
+      chLevels.forEach((_lv, li) => {
+        const globalIdx = allLevels.findIndex(a => a.chapterIdx === ci && a.levelIdx === li);
+        const levelId = allLevels[globalIdx]?.id;
+        const nd = document.createElement('button');
+        nd.className = 'level-node' +
+          (cleared.has(levelId) ? ' cleared' : '') +
+          (gameState.mode === 'level' && globalIdx === gameState.levelIdx ? ' active' : '');
+        nd.textContent = String(li + 1);
+        // 悬浮提示
+        const tip = document.createElement('span');
+        tip.className = 'level-node-tip';
+        tip.textContent = lt(_lv.title);
+        nd.appendChild(tip);
+        nd.onclick = () => { closeDrawer(); loadLevel(globalIdx); };
+        nodes.appendChild(nd);
+      });
+
+      body.appendChild(nodes);
+      acc.appendChild(body);
+      $('levels').appendChild(acc);
     });
-  });
+  } else {
+    // 实验线或无旅程时：全局进度条
+    const progBar = document.createElement('div');
+    progBar.className = 'progress-bar';
+    progBar.innerHTML =
+      '<div class="progress-fill" style="width:' +
+      Math.round((clearCount / allLevels.length) * 100) + '%"></div>' +
+      '<span class="progress-text">' + t('progress', clearCount, allLevels.length) + '</span>';
+    $('levels').appendChild(progBar);
+  }
 
   $('reset').textContent =
     gameState.mode === 'play' ? t('reset_play') : t('reset_level');
 
   document.documentElement.dataset.chapter =
     gameState.mode === 'level'
-      ? `ch${allLevels[gameState.levelIdx].chapterIdx + 1}`
+      ? (allLevels[gameState.levelIdx].chapterId || `ch${allLevels[gameState.levelIdx].chapterIdx + 1}`)
       : 'sandbox';
   refreshThemeButton();
 
@@ -2024,25 +2232,47 @@ function bindEvents() {
     render();
   };
 
-  /* ── 下一关：跳到下一个未通关关卡 ── */
+  /* ── 下一关：在当前旅程范围内找下一个未通关关卡 ── */
   $('next').onclick = () => {
     const cleared = getClearedSet();
-    // 优先找当前关卡之后的第一个未通关
-    let next = -1;
-    for (let i = gameState.levelIdx + 1; i < allLevels.length; i++) {
-      if (!cleared.has(i)) { next = i; break; }
-    }
-    // 如果后面全通了，找前面的
-    if (next === -1) {
-      for (let i = 0; i < gameState.levelIdx; i++) {
-        if (!cleared.has(i)) { next = i; break; }
+    const range = gameState.journeyId ? journeyLevelRange(gameState.journeyId) : null;
+
+    if (range && range.length) {
+      // 在旅程范围内找下一个未通关
+      const curPos = range.indexOf(gameState.levelIdx);
+      let next = -1;
+      // 先找当前之后的
+      for (let k = curPos + 1; k < range.length; k++) {
+        if (!cleared.has(allLevels[range[k]].id)) { next = range[k]; break; }
       }
+      // 再找前面的
+      if (next === -1) {
+        for (let k = 0; k < curPos; k++) {
+          if (!cleared.has(allLevels[range[k]].id)) { next = range[k]; break; }
+        }
+      }
+      // 全部通关 → 回首页
+      if (next === -1) {
+        showHome();
+        return;
+      }
+      loadLevel(next);
+    } else {
+      // 无旅程时回退到全局逻辑
+      let next = -1;
+      for (let i = gameState.levelIdx + 1; i < allLevels.length; i++) {
+        if (!cleared.has(allLevels[i].id)) { next = i; break; }
+      }
+      if (next === -1) {
+        for (let i = 0; i < gameState.levelIdx; i++) {
+          if (!cleared.has(allLevels[i].id)) { next = i; break; }
+        }
+      }
+      if (next === -1 && gameState.levelIdx < allLevels.length - 1) {
+        next = gameState.levelIdx + 1;
+      }
+      if (next >= 0) loadLevel(next);
     }
-    // 如果全部通关，还是跳到下一顺序关
-    if (next === -1 && gameState.levelIdx < allLevels.length - 1) {
-      next = gameState.levelIdx + 1;
-    }
-    if (next >= 0) loadLevel(next);
   };
 
   $('loadFree').onclick = loadFree;
@@ -2129,29 +2359,41 @@ export function init() {
   applyTheme();
   refreshThemeButton();
   bindEvents();
-  loadLevel(0);
 
-  /* ── 语言切换 ── */
+  /* ── E2E 测试钩子 ── */
+  window.__testLoadLevel = loadLevel;
+  window.__testCurrentLevel = () => allLevels[gameState.levelIdx];
+
+  /* ── 首页起步 ── */
+  showHome();
+
+  /* ── 语言切换（游戏内抽屉 + 首页） ── */
   applyStaticI18n();
-  document.querySelectorAll('.langbtn').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.lang === getLocale());
-    btn.addEventListener('click', () => {
-      setLocale(btn.dataset.lang);
-      document.querySelectorAll('.langbtn').forEach((b) =>
-        b.classList.toggle('active', b.dataset.lang === btn.dataset.lang),
-      );
-      applyStaticI18n();
-      // 切换语言后刷新状态栏和日志
+
+  const langHandler = (btn) => {
+    setLocale(btn.dataset.lang);
+    document.querySelectorAll('.langbtn').forEach((b) =>
+      b.classList.toggle('active', b.dataset.lang === btn.dataset.lang),
+    );
+    applyStaticI18n();
+    if (gameState.mode === 'home') {
+      renderHome();
+    } else {
       uiState.status = {
         k: '',
         t: gameState.mode === 'level' ? t('status_reset_t') : t('play_start_t'),
         m: gameState.mode === 'level' ? t('status_reset_m') : t('play_start_m'),
       };
       uiState.logs = [t('log_loaded')];
-      document.title = t('app_title');
-      refreshThemeButton();
-      render();
-    });
+    }
+    document.title = t('app_title');
+    refreshThemeButton();
+    render();
+  };
+
+  document.querySelectorAll('.langbtn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.lang === getLocale());
+    btn.addEventListener('click', () => langHandler(btn));
   });
 
   const themeToggle = $('themeToggle');
@@ -2163,7 +2405,7 @@ export function init() {
     resetProg.addEventListener('click', () => {
       if (!confirm(t('reset_confirm'))) return;
       try { updateState('progress.clearedLevelIds', []); } catch {}
-      loadLevel(0);
+      showHome();
     });
   }
 
@@ -2195,5 +2437,25 @@ export function init() {
     };
     if (dismiss) dismiss.addEventListener('click', close);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  }
+
+  /* ── 首页：自由实验按钮 ── */
+  const homeSandbox = $('homeSandbox');
+  if (homeSandbox) {
+    homeSandbox.addEventListener('click', () => {
+      if ($('homeView')) $('homeView').style.display = 'none';
+      if ($('appView')) $('appView').style.display = '';
+      gameState.journeyId = null;
+      loadRandomPlay();
+    });
+  }
+
+  /* ── 首页：主题切换 ── */
+  const homeTheme = $('homeThemeToggle');
+  if (homeTheme) {
+    homeTheme.addEventListener('click', () => {
+      toggleTheme();
+      renderHome();
+    });
   }
 }

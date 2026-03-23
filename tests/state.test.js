@@ -110,7 +110,7 @@ describe('state.js', () => {
   });
 
   describe('已有 eqlab_state_v1 时不再迁移', () => {
-    it('直接读取已有状态', async () => {
+    it('直接读取已有状态（数字索引自动迁移为字符串 ID）', async () => {
       store['eqlab_state_v1'] = JSON.stringify({
         version: 1,
         profile: { locale: 'ja' },
@@ -122,7 +122,22 @@ describe('state.js', () => {
       const { loadState } = await freshModule();
       const s = loadState();
       expect(s.profile.locale).toBe('ja');
-      expect(s.progress.clearedLevelIds).toEqual([10, 20]);
+      // 10 → ch2-6 (ch1 有 5 关，所以第 11 个是 ch2 的第 6 关)
+      // 20 → ch4-5 (ch1:5 + ch2:6 + ch3:5 + ch4:5 中第 21 个，ch4 最后一关)
+      expect(s.progress.clearedLevelIds).toEqual(['ch2-6', 'ch4-5']);
+    });
+
+    it('字符串 ID 不重复迁移', async () => {
+      store['eqlab_state_v1'] = JSON.stringify({
+        version: 1,
+        profile: { locale: 'zh' },
+        progress: { clearedLevelIds: ['ch1-1', 'ch3-2'] },
+        learning: { seenOnboarding: false, lastPlayedAt: null },
+        meta: { schemaVersion: 1 },
+      });
+      const { loadState } = await freshModule();
+      const s = loadState();
+      expect(s.progress.clearedLevelIds).toEqual(['ch1-1', 'ch3-2']);
     });
   });
 });

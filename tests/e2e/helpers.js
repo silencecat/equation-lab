@@ -33,6 +33,9 @@ export async function openApp(page, options = {}) {
 
   const errors = attachBrowserErrorCollector(page);
   await page.goto('/equation_lab.html');
+  await expect(page.locator('#homeView')).toBeVisible();
+  // 进入第一个旅程以切换到游戏视图
+  await page.locator('.journey-card').first().click();
   await expect(page.locator('#title')).toBeVisible();
   return errors;
 }
@@ -47,19 +50,34 @@ export async function openDrawer(page) {
 
 export async function loadLevelByIndex(page, index, expectedTitle) {
   if (index !== 0) {
-    await openDrawer(page);
-    await page.evaluate((i) => {
-      const buttons = document.querySelectorAll('#levels .level');
-      const btn = buttons[i];
-      if (!btn) throw new Error(`missing level button ${i}`);
-      btn.click();
-    }, index);
+    await page.evaluate((i) => window.__testLoadLevel(i), index);
   }
   await page.waitForFunction(
     (title) => document.querySelector('#title')?.textContent?.includes(title),
     expectedTitle,
   );
   await page.waitForTimeout(150);
+  await dismissGateIfOpen(page);
+}
+
+export async function dismissGateIfOpen(page) {
+  const gate = page.locator('#gateOverlay');
+  if (await gate.isVisible().catch(() => false)) {
+    // 点击正确选项（带 correct 数据的按钮）
+    await page.evaluate(() => {
+      const btns = document.querySelectorAll('.gate-opt');
+      // 找到正确答案索引: gate数据在当前关卡上
+      const lv = window.__testCurrentLevel?.();
+      if (lv?.gate) {
+        const idx = lv.gate.options.findIndex(o => o.correct);
+        if (idx >= 0 && btns[idx]) btns[idx].click();
+      } else if (btns.length) {
+        // fallback: 依次尝试
+        btns.forEach(b => b.click());
+      }
+    });
+    await page.waitForTimeout(600);
+  }
 }
 
 export async function dragLocatorToPoint(page, locator, point) {

@@ -1,13 +1,111 @@
 /**
  * levels.js — 关卡数据（按章组织 · 中日英三语）
  *
- * 11 章 · 60 关，参考 docs/levels_blueprint_draft.js 蓝图扩充。
+ * 13 章 · 66 关，参考 docs/levels_blueprint_draft.js 蓝图扩充。
+ * Ch0 为 A0 序章（solve-lite 近似），Ch5b 为 C3 选择未知量（build 变体近似）。
  * Ch1-7 为核心主线，Ch8-11 为挑战拓展。
  *
  * 每关包含 story 字段（应用题文本），build 关卡额外包含 tray（卡片列表）。
  */
 
 export const chapters = [
+
+  /* ═══════════════════════════════════════════════════════
+   *  序章  等号代表一样多 — A0 solve-lite
+   *  (近期以 solve 模式近似；教学强调"平衡"而非"移项")
+   * ═══════════════════════════════════════════════════════ */
+  {
+    id: 'ch0',
+    name: { zh: '序章：等号代表一样多', ja: '序章：等号は「同じ」の印', en: 'Prologue: Equals Means the Same' },
+    desc: {
+      zh: '等号就像天平：左边和右边一直是一样多的。想让天平继续平衡，两边就要一起变。',
+      ja: '等号はてんびんみたい：左と右はいつも同じだけ。バランスを保つには、両方いっしょに変えよう。',
+      en: 'The equals sign is like a balance: left and right are always the same. To keep it balanced, change both sides together.',
+    },
+    levels: [
+      /* ── 0-1 天平两边 ── */
+      {
+        title: { zh: '0-1 天平两边', ja: '0-1 てんびんの両側', en: '0-1 Both Sides of the Scale' },
+        story: {
+          zh: '想象一架天平。左边有一袋苹果和 1 个橘子，右边有 4 个水果。天平平衡了！那袋苹果有几个？',
+          ja: 'てんびんを想像しよう。左にはリンゴの袋と 1 個のミカン、右には果物が 4 個。つり合ってるよ！袋の中にリンゴは何個？',
+          en: 'Imagine a scale. On the left: a bag of apples and 1 orange. On the right: 4 fruits. It balances! How many apples are in the bag?',
+        },
+        sub:  { zh: '等号的意思就是——左边和右边一样多', ja: '等号のいみは「左右は同じだけ」', en: 'Equals means: left side and right side are the same amount' },
+        goal: { zh: '让天平继续平衡，找出 △', ja: 'てんびんのバランスを保って △ を見つけよう', en: 'Keep the balance and find △' },
+        hint: { zh: '两边同时拿走 1，等号继续成立，△ 就露出来了！', ja: '両側から 1 つずつ取ると、等号はそのまま。△ が見えてくるよ！', en: 'Remove 1 from both sides — the equals sign still holds, and △ appears!' },
+        annotations: {
+          left:  [{ zh: '一袋苹果', ja: 'リンゴの袋', en: 'bag of apples' }, { zh: '橘子', ja: 'ミカン', en: 'orange' }],
+          right: [{ zh: '一共的水果', ja: '果物の合計', en: 'total fruits' }],
+        },
+        target: { n: 3, d: 1 },
+        eq: {
+          left:  { items: [{ t:'term', s:'x', c:{ n:1, d:1 } }, { t:'term', s:'n', c:{ n:1, d:1 } }] },
+          right: { items: [{ t:'term', s:'n', c:{ n:4, d:1 } }] },
+        },
+      },
+      /* ── 0-2 两边同时变 ── */
+      {
+        title: { zh: '0-2 两边同时变', ja: '0-2 両側いっしょに変えよう', en: '0-2 Change Both Sides' },
+        story: {
+          zh: '桌子左边有一个盒子和 2 颗弹珠，右边有 5 颗弹珠。两边一样多！盒子里有几颗？',
+          ja: 'テーブルの左に箱とビー玉 2 個、右にビー玉 5 個。同じ数だよ！箱の中には何個？',
+          en: 'On the left of the table: a box and 2 marbles. On the right: 5 marbles. They are equal! How many are in the box?',
+        },
+        gate: {
+          type: 'predict',
+          question: { zh: '你猜盒子里有几颗弹珠？', ja: '箱の中にビー玉は何個だと思う？', en: 'How many marbles do you think are in the box?' },
+          options: [
+            { text: { zh: '比 5 多', ja: '5 より多い', en: 'More than 5' } },
+            { text: { zh: '大概 3 个', ja: '3 個くらい', en: 'About 3' }, correct: true },
+            { text: { zh: '比 1 少', ja: '1 より少ない', en: 'Less than 1' } },
+          ],
+        },
+        sub:  { zh: '两边同时拿走 2 颗，天平还是平的', ja: '両方から 2 個ずつ取っても、てんびんはつり合うよ', en: 'Remove 2 from both sides — the scale stays balanced' },
+        goal: { zh: '让天平继续平衡，找出 △', ja: 'てんびんのバランスを保って △ を見つけよう', en: 'Keep the balance and find △' },
+        hint: { zh: '两边一起减去 2，左边只剩下 △，就知道 △ 等于什么了！', ja: '両側から 2 を引くと、左は △ だけ。△ がわかるよ！', en: 'Subtract 2 from both sides — only △ remains on the left!' },
+        annotations: {
+          left:  [{ zh: '盒子', ja: '箱', en: 'box' }, { zh: '放上去的', ja: '置いた分', en: 'placed on' }],
+          right: [{ zh: '一共', ja: '合計', en: 'total' }],
+        },
+        target: { n: 3, d: 1 },
+        eq: {
+          left:  { items: [{ t:'term', s:'x', c:{ n:1, d:1 } }, { t:'term', s:'n', c:{ n:2, d:1 } }] },
+          right: { items: [{ t:'term', s:'n', c:{ n:5, d:1 } }] },
+        },
+      },
+      /* ── 0-3 补回来也要一起补 ── */
+      {
+        title: { zh: '0-3 补回来也要一起补', ja: '0-3 戻すときもいっしょに', en: '0-3 Add Back Together' },
+        story: {
+          zh: '小明有一些饼干，吃掉了 2 块后还剩 3 块。想知道原来有几块？两边一起加回 2！',
+          ja: 'たけしくんにはクッキーが何枚かあったけど、2 枚食べて残り 3 枚。もとは何枚？両側に 2 をもどそう！',
+          en: 'Alex had some cookies. After eating 2, only 3 are left. How many were there? Add 2 back to both sides!',
+        },
+        gate: {
+          type: 'predict',
+          question: { zh: '小明原来的饼干比 3 块多还是少？', ja: 'もとのクッキーは 3 枚より多い？少ない？', en: 'Were there more or fewer than 3 cookies originally?' },
+          options: [
+            { text: { zh: '比 3 少', ja: '3 より少ない', en: 'Fewer than 3' } },
+            { text: { zh: '刚好 3 块', ja: 'ちょうど 3 枚', en: 'Exactly 3' } },
+            { text: { zh: '比 3 多', ja: '3 より多い', en: 'More than 3' }, correct: true },
+          ],
+        },
+        sub:  { zh: '被拿走了？没关系——两边都加回一样多，等号就继续成立', ja: '取られちゃった？大丈夫——両方に同じだけ戻せば等号はそのまま', en: 'Something was taken away? No worries — add the same to both sides and equals still holds' },
+        goal: { zh: '让天平继续平衡，找出 △', ja: 'てんびんのバランスを保って △ を見つけよう', en: 'Keep the balance and find △' },
+        hint: { zh: '两边同时加上 2，△ 就单独出来了！', ja: '両側に 2 を足すと、△ だけになるよ！', en: 'Add 2 to both sides — △ stands alone!' },
+        annotations: {
+          left:  [{ zh: '饼干', ja: 'クッキー', en: 'cookies' }, { zh: '吃掉的', ja: '食べた分', en: 'eaten' }],
+          right: [{ zh: '还剩的', ja: '残り', en: 'remaining' }],
+        },
+        target: { n: 5, d: 1 },
+        eq: {
+          left:  { items: [{ t:'term', s:'x', c:{ n:1, d:1 } }, { t:'term', s:'n', c:{ n:-2, d:1 } }] },
+          right: { items: [{ t:'term', s:'n', c:{ n:3, d:1 } }] },
+        },
+      },
+    ],
+  },
 
   /* ═══════════════════════════════════════════════════════
    *  第 1 章  平衡和未知数 — 用等式讲故事
@@ -28,6 +126,15 @@ export const chapters = [
           zh: '小明口袋里有一些糖果。妈妈又给了他 2 颗，数一数发现一共有 5 颗。小明原来有几颗糖果？',
           ja: 'たけしくんのポケットにキャンディが何個か入っています。お母さんがさらに 2 個くれて、数えたら全部で 5 個でした。最初は何個あった？',
           en: 'Alex has some candies in his pocket. Mom gives him 2 more, and he counts 5 in total. How many did he start with?',
+        },
+        gate: {
+          type: 'pickUnknown',
+          question: { zh: '这道题里，什么是不知道的？', ja: 'この問題で「わからないもの」はどれ？', en: 'What is unknown in this problem?' },
+          options: [
+            { text: { zh: '小明原来的糖果', ja: 'もとのキャンディの数', en: 'Alex\'s original candies' }, correct: true },
+            { text: { zh: '妈妈给的 2 颗', ja: 'お母さんがくれた 2 個', en: 'The 2 from Mom' } },
+            { text: { zh: '一共 5 颗', ja: '全部で 5 個', en: 'The total of 5' } },
+          ],
         },
         sub:  { zh: '先把 +2 请走，看看 △ 会不会更孤单', ja: 'まず +2 をどかして、△ がひとりに近づくか見てみよう', en: 'Clear +2 first and see whether x becomes more alone' },
         goal: { zh: '求出 △ 等于几', ja: '△ の値を求めよう', en: 'Find the value of x' },
@@ -69,6 +176,15 @@ export const chapters = [
           zh: '书架上有一些书。小红借走了 1 本之后，书架上还剩 4 本。原来有几本？',
           ja: '本棚に本が何冊かあります。花子さんが 1 冊借りたら、残りは 4 冊。もとは何冊あった？',
           en: 'There are some books on the shelf. After borrowing 1, only 4 are left. How many were there?',
+        },
+        gate: {
+          type: 'pickUnknown',
+          question: { zh: '这道题里，什么是不知道的？', ja: 'この問題で「わからないもの」はどれ？', en: 'What is unknown in this problem?' },
+          options: [
+            { text: { zh: '借走的 1 本', ja: '借りた 1 冊', en: 'The 1 borrowed' } },
+            { text: { zh: '原来有几本', ja: 'もとの冊数', en: 'Original number of books' }, correct: true },
+            { text: { zh: '还剩 4 本', ja: '残り 4 冊', en: 'The 4 remaining' } },
+          ],
         },
         sub:  { zh: '“借走 1 本”表示少了 1，本题要把这部分请走', ja: '「1 冊借りた」は 1 減ったということ。このぶんをどかしてみよう', en: '"Borrowing 1" means 1 less. Clear that part away in this level' },
         goal: { zh: '求出 △ 等于几', ja: '△ の値を求めよう', en: 'Find the value of x' },
@@ -753,6 +869,90 @@ export const chapters = [
           right: { items: [{ t:'term', s:'n', c:{ n:9, d:1 } }] },
         },
         target: { n: 8, d: 1 },
+      },
+    ],
+  },
+
+  /* ═══════════════════════════════════════════════════════
+   *  谁是△ — C3 选择未知量 (build 变体近似)
+   *  (近期以 build + 文案引导近似；选择步骤靠故事和教练提示)
+   * ═══════════════════════════════════════════════════════ */
+  {
+    id: 'ch5b',
+    name: { zh: '谁是△？— 选择未知量', ja: '△ は誰？— 未知数を選ぼう', en: 'Who Is △? — Choose the Unknown' },
+    desc: {
+      zh: '列式之前，先想想：题目在问谁？那个就是 △。设对了，方程就又快又稳。',
+      ja: '式を作る前に考えよう：問題は誰を聞いてる？それが △。正しく選べば方程式がスムーズに！',
+      en: 'Before building the equation, ask: who is the question about? That\'s △. Choose well and the equation flows!',
+    },
+    levels: [
+      /* ── C3-1 谁是不知道的 ── */
+      {
+        type: 'build',
+        title: { zh: 'C3-1 谁是不知道的', ja: 'C3-1 わからないのは誰？', en: 'C3-1 Who Don\'t We Know?' },
+        story: {
+          zh: '小明带了一些钱去商店，花了 4 元买文具，还剩 6 元。想一想：我们不知道的是"带了多少钱"——那就是 △！',
+          ja: 'たけしくんはお金を持ってお店へ。文房具に 4 円使って残り 6 円。わからないのは「持っていったお金」——それが △！',
+          en: 'Alex takes some money to the shop. He spends 4 on stationery and has 6 left. We don\'t know "how much he brought" — that\'s △!',
+        },
+        sub:  { zh: '先想：题目在问谁？——"带去的钱"就是 △', ja: 'まず考えよう：問題が聞いてるのは？——「持っていったお金」が △', en: 'Think first: what does the question ask? — "money brought" is △' },
+        goal: { zh: '列出等式：左边 = 右边', ja: '等式を作ろう：左辺 = 右辺', en: 'Build the equation: left = right' },
+        tray: [
+          { s: 'x', c: { n: 1, d: 1 }, label: { zh: '带去的钱', ja: '持っていったお金', en: 'money brought' } },
+          { s: 'n', c: { n: -4, d: 1 }, label: { zh: '花掉的', ja: '使った分', en: 'spent' } },
+          { s: 'n', c: { n: 6, d: 1 }, label: { zh: '还剩的', ja: '残り', en: 'remaining' } },
+          { s: 'n', c: { n: 2, d: 1 }, label: { zh: '（找回的？）', ja: '（おつり？）', en: '(change?)' } },
+        ],
+        eq: {
+          left:  { items: [{ t:'term', s:'x', c:{ n:1, d:1 } }, { t:'term', s:'n', c:{ n:-4, d:1 } }] },
+          right: { items: [{ t:'term', s:'n', c:{ n:6, d:1 } }] },
+        },
+        target: { n: 10, d: 1 },
+      },
+      /* ── C3-2 设谁更顺手 ── */
+      {
+        type: 'build',
+        title: { zh: 'C3-2 设谁更顺手', ja: 'C3-2 どっちを △ にする？', en: 'C3-2 Which Is Easier to Set?' },
+        story: {
+          zh: '小红有一些贴纸。小蓝比小红多 3 张，小蓝一共有 11 张。谁应该是 △ 呢？想一想：哪个量是你真正不知道的？',
+          ja: '花子さんにはシールが何枚かあります。太郎くんは花子さんより 3 枚多くて、全部で 11 枚。△ にするのは誰？本当にわからないのはどっち？',
+          en: 'Alice has some stickers. Bob has 3 more than Alice — 11 in total. Who should be △? Think: which amount do you truly not know?',
+        },
+        sub:  { zh: '小红的贴纸是 △，小蓝比她多 3 就是 △ + 3', ja: '花子のシールが △、太郎は 3 枚多いから △ + 3', en: 'Alice\'s stickers = △, Bob has 3 more so that\'s △ + 3' },
+        goal: { zh: '列出等式：左边 = 右边', ja: '等式を作ろう：左辺 = 右辺', en: 'Build the equation: left = right' },
+        tray: [
+          { s: 'x', c: { n: 1, d: 1 }, label: { zh: '小红的贴纸', ja: '花子のシール', en: 'Alice\'s stickers' } },
+          { s: 'n', c: { n: 3, d: 1 }, label: { zh: '多出来的', ja: '多い分', en: 'extra' } },
+          { s: 'n', c: { n: 11, d: 1 }, label: { zh: '小蓝一共的', ja: '太郎の合計', en: 'Bob\'s total' } },
+        ],
+        eq: {
+          left:  { items: [{ t:'term', s:'x', c:{ n:1, d:1 } }, { t:'term', s:'n', c:{ n:3, d:1 } }] },
+          right: { items: [{ t:'term', s:'n', c:{ n:11, d:1 } }] },
+        },
+        target: { n: 8, d: 1 },
+      },
+      /* ── C3-3 一个△就够 ── */
+      {
+        type: 'build',
+        title: { zh: 'C3-3 一个△就够', ja: 'C3-3 △ は一つで十分', en: 'C3-3 One △ Is Enough' },
+        story: {
+          zh: '弟弟和哥哥一起存钱。弟弟存了一些，哥哥存的是弟弟的 2 倍。两人一共存了 18 元。只要设弟弟为 △，哥哥就是 2△——不用设两个！',
+          ja: '弟と兄がいっしょに貯金。弟がいくらか貯めて、兄は弟の 2 倍。合計 18 円。弟を △ にすれば、兄は 2△——二つも要らない！',
+          en: 'Two brothers save money together. The younger saves some; the older saves twice as much. 18 in total. Set the younger as △, the older is 2△ — no need for two unknowns!',
+        },
+        sub:  { zh: '设一个量为 △，另一个就能用 △ 表达', ja: '一つを △ にすれば、もう一つも △ で表せるよ', en: 'Set one as △, and the other can be expressed using △' },
+        goal: { zh: '列出等式：左边 = 右边', ja: '等式を作ろう：左辺 = 右辺', en: 'Build the equation: left = right' },
+        tray: [
+          { s: 'x', c: { n: 1, d: 1 }, label: { zh: '弟弟存的', ja: '弟の貯金', en: 'younger\'s savings' } },
+          { s: 'x', c: { n: 2, d: 1 }, label: { zh: '哥哥存的（2倍）', ja: '兄の貯金（2倍）', en: 'older\'s savings (2×)' } },
+          { s: 'n', c: { n: 18, d: 1 }, label: { zh: '一共', ja: '合計', en: 'total' } },
+          { s: 'n', c: { n: 9, d: 1 }, label: { zh: '（平均每人？）', ja: '（一人平均？）', en: '(average per person?)' } },
+        ],
+        eq: {
+          left:  { items: [{ t:'term', s:'x', c:{ n:1, d:1 } }, { t:'term', s:'x', c:{ n:2, d:1 } }] },
+          right: { items: [{ t:'term', s:'n', c:{ n:18, d:1 } }] },
+        },
+        target: { n: 6, d: 1 },
       },
     ],
   },
@@ -1515,12 +1715,56 @@ export const chapters = [
   },
 ];
 
-/** 展平所有关卡为单一数组（带 chapterIdx 和 levelIdx） */
+/** 玩家层旅程分组 — 每段旅程包含若干章节 */
+export const journeys = [
+  {
+    id: 'j1',
+    chapters: ['ch0', 'ch1', 'ch2'],
+    name: { zh: '看懂一样多', ja: '「同じ」が見える', en: 'Seeing Equality' },
+    desc: { zh: '等号代表两边一样多，学会用加减保持平衡', ja: '等号は両辺が同じ意味。足し引きでバランスを保とう', en: 'The equals sign means balance—keep both sides the same' },
+    icon: '⚖️',
+    color: '#2e8f7b',
+  },
+  {
+    id: 'j2',
+    chapters: ['ch3', 'ch4'],
+    name: { zh: '让未知数更清楚', ja: '未知数をはっきり', en: 'Clarifying Unknowns' },
+    desc: { zh: '倍数、分数系数，把△变得更干净', ja: '倍数や分数の係数を使って△をすっきりさせよう', en: 'Use multiples and fractions to isolate △' },
+    icon: '🔍',
+    color: '#3a72c7',
+  },
+  {
+    id: 'j3',
+    chapters: ['ch5', 'ch5b'],
+    name: { zh: '把故事变成方程', ja: '物語を式にする', en: 'Stories to Equations' },
+    desc: { zh: '读懂应用题，选出未知量，列出等式', ja: '文章題を読み解き、未知数を選んで式を立てよう', en: 'Read word problems, pick the unknown, build equations' },
+    icon: '📖',
+    color: '#cf5d8d',
+  },
+  {
+    id: 'j4',
+    chapters: ['ch6', 'ch7'],
+    name: { zh: '看懂复杂关系', ja: '複雑な関係を読む', en: 'Complex Relations' },
+    desc: { zh: '括号展开、两边都有△，挑战更复杂的等式', ja: 'カッコの展開、両辺に△がある複雑な式に挑戦', en: 'Expand brackets, handle △ on both sides' },
+    icon: '🧩',
+    color: '#b45fbb',
+  },
+  {
+    id: 'challenge',
+    chapters: ['ch8', 'ch9', 'ch10', 'ch11'],
+    name: { zh: '挑战线', ja: 'チャレンジ', en: 'Challenges' },
+    desc: { zh: '逆向思考、和差倍、年龄、盈亏——综合应用', ja: '逆思考・和差倍・年齢・損益——総合応用', en: 'Reverse thinking, sums & differences, ages, surplus & deficit' },
+    icon: '⭐',
+    color: '#d45c5c',
+  },
+];
+
+/** 展平所有关卡为单一数组（带 id、chapterIdx、levelIdx 和 chapterId） */
 export function flattenLevels() {
   const all = [];
   chapters.forEach((ch, ci) => {
     ch.levels.forEach((lv, li) => {
-      all.push({ ...lv, chapterIdx: ci, levelIdx: li });
+      all.push({ ...lv, id: `${ch.id}-${li + 1}`, chapterIdx: ci, levelIdx: li, chapterId: ch.id });
     });
   });
   return all;

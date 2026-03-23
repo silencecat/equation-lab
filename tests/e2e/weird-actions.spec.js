@@ -10,7 +10,7 @@ test.describe('weird actions', () => {
   test('chapter 2 early levels keep teaching terms separate on first render', async ({ page }) => {
     await openApp(page);
 
-    await page.evaluate(() => document.querySelectorAll('#levels .level')[5].click());
+    await page.evaluate((i) => window.__testLoadLevel(i), 8);
     await page.waitForFunction(() => document.querySelector('#title')?.textContent?.includes('2-1'));
     const level21Terms = await page.$$eval('#left > .chip', (els) =>
       els.map((el) => el.textContent.replace(/\s+/g, '')),
@@ -19,7 +19,7 @@ test.describe('weird actions', () => {
     expect(level21Terms.join(' ')).toContain('+2');
     expect(level21Terms.join(' ')).toContain('+1');
 
-    await page.evaluate(() => document.querySelectorAll('#levels .level')[7].click());
+    await page.evaluate((i) => window.__testLoadLevel(i), 10);
     await page.waitForFunction(() => document.querySelector('#title')?.textContent?.includes('2-3'));
     const level23Terms = await page.$$eval('#left > .chip', (els) =>
       els.map((el) => el.textContent.replace(/\s+/g, '')),
@@ -101,7 +101,7 @@ test.describe('weird actions', () => {
   test('build tray cards tolerate odd drags and still place normally', async ({ page }) => {
     const browserErrors = await openApp(page);
 
-    await loadBuildLevel(page, 3, '1-4');
+    await loadBuildLevel(page, 6, '1-4');
 
     const trayChip = page.locator('#buildTray .tray-chip').first();
     await dragLocatorToPoint(page, trayChip, { x: 15, y: 15 });
@@ -128,13 +128,7 @@ test.describe('weird actions', () => {
 });
 
 async function loadBuildLevel(page, index, titleHint) {
-  await openDrawer(page);
-  await page.evaluate((i) => {
-    const buttons = document.querySelectorAll('#levels .level');
-    const btn = buttons[i];
-    if (!btn) throw new Error(`missing level button ${i}`);
-    btn.click();
-  }, index);
+  await page.evaluate((i) => window.__testLoadLevel(i), index);
   await page.waitForFunction(
     (title) => document.querySelector('#title')?.textContent?.includes(title),
     titleHint,

@@ -43,6 +43,29 @@ function migrate() {
 /* ── 内存缓存 ── */
 let _state = null;
 
+/**
+ * v1→v2: clearedLevelIds 曾用全局数字索引，现改为稳定字符串 ID。
+ * 此映射表对应重排前的旧章节顺序与关卡数。
+ */
+function migrateNumericCleared(state) {
+  const ids = state.progress?.clearedLevelIds;
+  if (!Array.isArray(ids) || ids.length === 0) return;
+  if (typeof ids[0] === 'string') return; // 已是新格式
+  // 旧章节顺序：[chapterId, levelCount]（仅 ch1-ch11，共 60 关）
+  const OLD = [
+    ['ch1',5],['ch2',6],['ch3',5],['ch4',5],['ch5',10],
+    ['ch6',4],['ch7',5],['ch8',6],['ch9',6],['ch10',3],
+    ['ch11',5],
+  ];
+  const map = [];
+  for (const [chId, cnt] of OLD) {
+    for (let i = 1; i <= cnt; i++) map.push(`${chId}-${i}`);
+  }
+  state.progress.clearedLevelIds = ids
+    .map(idx => map[idx])
+    .filter(Boolean);
+}
+
 /** 初始化（启动时调一次） */
 export function loadState() {
   try {
@@ -55,6 +78,8 @@ export function loadState() {
         if (!_state[k]) _state[k] = def[k];
       }
       if (!_state.profile.theme) _state.profile.theme = def.profile.theme;
+      // v1→v2 迁移：数字索引 → 稳定字符串 ID
+      migrateNumericCleared(_state);
     }
   } catch { /* ignore */ }
 
