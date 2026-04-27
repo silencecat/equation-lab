@@ -1166,6 +1166,41 @@
       margin: 4px 0 0; font-size: 13px; color: var(--muted);
     }
     .home-journeys { display: flex; flex-direction: column; gap: 10px; }
+    .home-sidecards { display: flex; flex-direction: column; gap: 10px; }
+    .home-sidecard {
+      display: flex; align-items: center; gap: 14px;
+      width: 100%; text-align: left;
+      border: 1.5px solid color-mix(in srgb, var(--chapter-border) 75%, white);
+      border-radius: 18px; padding: 14px 16px;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 65%, white), rgba(255,255,255,.9));
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--chapter-accent) 10%, transparent);
+      cursor: pointer; color: var(--text);
+    }
+    .home-sidecard.practice {
+      border-color: #d5c19a;
+      background: linear-gradient(135deg, #fff6e5, #fffdf8 72%);
+    }
+    .home-sidecard.sandbox {
+      border-color: #bfd2e9;
+      background: linear-gradient(135deg, #ebf4ff, #f9fcff 72%);
+    }
+    .home-sidecard-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: grid; place-items: center;
+      background: rgba(255,255,255,.78);
+      font-size: 24px; flex-shrink: 0;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.5);
+    }
+    .home-sidecard-body {
+      display: flex; flex-direction: column; gap: 2px;
+      min-width: 0;
+    }
+    .home-sidecard-title {
+      font-size: 15px; font-weight: 800;
+    }
+    .home-sidecard-desc {
+      font-size: 12px; color: var(--muted); line-height: 1.45;
+    }
 
     /* 旅程卡片 */
     .journey-card {
@@ -1223,6 +1258,124 @@
     .home-lang { display: flex; gap: 4px; }
     .home-langbtn { font-size: 12px; padding: 4px 10px; }
     .home-theme-toggle { font-size: 12px; }
+
+    /* ══════════════════════════════════════
+       练习区
+       ══════════════════════════════════════ */
+    .practice {
+      max-width: 640px; margin: 0 auto;
+      padding: 18px 14px 28px;
+      display: flex; flex-direction: column; gap: 14px;
+      min-height: 100vh;
+    }
+    .practice-card {
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 70%, white);
+      border-radius: 24px;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.95), color-mix(in srgb, var(--chapter-soft) 24%, white));
+      box-shadow: 0 14px 34px color-mix(in srgb, var(--chapter-accent) 10%, transparent);
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .practice-back {
+      width: auto; min-width: 92px; height: 40px;
+      padding: 0 12px; font-size: 13px; white-space: nowrap;
+    }
+    .practice-meta {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
+    }
+    .practice-meta-item {
+      border-radius: 16px; padding: 12px 14px;
+      background: color-mix(in srgb, var(--chapter-soft) 50%, white);
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 70%, white);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .practice-meta-item span {
+      font-size: 12px; color: var(--muted);
+    }
+    .practice-meta-item strong {
+      font-size: 18px; color: var(--chapter-ink);
+    }
+    .practice-lead {
+      margin: 0; font-size: 14px; color: var(--story-text); line-height: 1.65;
+    }
+    .practice-expression-wrap {
+      border-radius: 20px; padding: 16px;
+      background: linear-gradient(135deg, #fffaf0, rgba(255,255,255,.96));
+      border: 1px solid #edd9b9;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .practice-expression-label {
+      font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+    }
+    .practice-expression {
+      font: 800 30px/1.35 "Consolas", "Trebuchet MS", monospace;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .practice-hint {
+      border: 1px dashed color-mix(in srgb, var(--chapter-border) 85%, white);
+      border-radius: 16px; padding: 10px 12px;
+      background: rgba(255,255,255,.72);
+    }
+    .practice-hint summary {
+      cursor: pointer; font-weight: 700; color: var(--chapter-ink);
+    }
+    .practice-hint[open] {
+      background: color-mix(in srgb, var(--chapter-soft) 36%, white);
+    }
+    .practice-hint div {
+      margin-top: 8px; font-size: 14px; color: var(--text); line-height: 1.6;
+    }
+    .practice-answer-block {
+      display: flex; flex-direction: column; gap: 8px; font-weight: 700;
+    }
+    .practice-answer-block input {
+      width: 100%; border-radius: 14px; border: 1px solid var(--line);
+      padding: 14px 16px; font-size: 22px; font-weight: 700;
+      background: rgba(255,255,255,.96); color: var(--text);
+    }
+    .practice-actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .practice-actions button {
+      border: none; border-radius: 14px; padding: 12px 16px;
+      font-size: 14px; font-weight: 800; cursor: pointer;
+    }
+    #practiceSubmit {
+      background: var(--chapter-accent); color: #fff;
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--chapter-accent) 22%, transparent);
+    }
+    #practiceNext {
+      background: rgba(255,255,255,.9); color: var(--chapter-ink);
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 75%, white);
+    }
+    .practice-feedback {
+      border-radius: 18px; padding: 14px 16px;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 42%, white), rgba(255,255,255,.96));
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 78%, white);
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .practice-feedback.bad {
+      background: linear-gradient(135deg, #fff1f1, #fffaf8);
+      border-color: #efc1c1;
+    }
+    .practice-feedback-badge {
+      align-self: flex-start;
+      border-radius: 999px; padding: 6px 10px;
+      background: var(--chapter-accent); color: #fff;
+      font-size: 12px; font-weight: 800;
+    }
+    .practice-feedback.bad .practice-feedback-badge {
+      background: #b75b5b;
+    }
+    .practice-feedback-text {
+      font-size: 14px; line-height: 1.6; color: var(--text);
+    }
+    .practice-strategy {
+      border-top: 1px dashed color-mix(in srgb, var(--chapter-border) 90%, white);
+      padding-top: 10px;
+      font-size: 14px; line-height: 1.65; color: var(--chapter-ink);
+    }
 
     /* ══════════════════════════════════════
        改造后的抽屉 · 手风琴
@@ -1319,8 +1472,23 @@
     <div class="home-journeys" id="homeJourneys">
       <!-- JS 动态渲染旅程卡片 -->
     </div>
+    <div class="home-sidecards">
+      <button class="home-sidecard practice" id="homePractice" type="button">
+        <span class="home-sidecard-icon">🧠</span>
+        <span class="home-sidecard-body">
+          <span class="home-sidecard-title" data-i18n="home_practice_title">🧠 巧算练习区</span>
+          <span class="home-sidecard-desc" data-i18n="home_practice_desc">自动出题，按用时给评价。先看结构，再下手。</span>
+        </span>
+      </button>
+      <button class="home-sidecard sandbox" id="homeSandbox" type="button">
+        <span class="home-sidecard-icon">🔬</span>
+        <span class="home-sidecard-body">
+          <span class="home-sidecard-title" data-i18n="home_sandbox">🔬 自由实验</span>
+          <span class="home-sidecard-desc" data-i18n="home_sandbox_desc">自己改式子、乱试路线，看看等式怎样保持平衡。</span>
+        </span>
+      </button>
+    </div>
     <div class="home-footer">
-      <button class="home-sandbox" id="homeSandbox" type="button" data-i18n="home_sandbox">🔬 自由实验</button>
       <div class="home-lang">
         <button class="langbtn home-langbtn active" data-lang="zh">中文</button>
         <button class="langbtn home-langbtn" data-lang="ja">日本語</button>
@@ -1328,6 +1496,61 @@
       </div>
       <button id="homeThemeToggle" class="theme-toggle home-theme-toggle" type="button" data-i18n="theme_toggle">切换主题</button>
     </div>
+  </div>
+
+  <!-- ====== 练习区 ====== -->
+  <div class="practice" id="practiceView" style="display:none">
+    <header class="topbar">
+      <button class="menu-btn practice-back" id="practiceBackHome" type="button" data-i18n="practice_back">← 回首页</button>
+      <div class="topbar-info">
+        <div id="practiceTitle" class="topbar-title"></div>
+        <div id="practiceSubtitle" class="topbar-sub"></div>
+      </div>
+      <div class="topbar-actions">
+        <div id="practiceTimerPill" class="topbar-badge"></div>
+      </div>
+    </header>
+
+    <section class="practice-card">
+      <div class="practice-meta">
+        <div class="practice-meta-item">
+          <span data-i18n="practice_best">最佳用时</span>
+          <strong id="practiceBestTime">--</strong>
+        </div>
+        <div class="practice-meta-item">
+          <span data-i18n="practice_last_rating">上次评价</span>
+          <strong id="practiceLastRating">--</strong>
+        </div>
+      </div>
+
+      <p class="practice-lead" data-i18n="practice_paper_note">可以先在脑中想，也可以先在草稿纸上拆一拆、配一配，再把答案填进来。</p>
+
+      <div class="practice-expression-wrap">
+        <div class="practice-expression-label" data-i18n="practice_question_label">本题</div>
+        <div class="practice-expression" id="practiceExpression"></div>
+      </div>
+
+      <details class="practice-hint">
+        <summary data-i18n="practice_hint_summary">给一点提示</summary>
+        <div id="practiceHintText"></div>
+      </details>
+
+      <label class="practice-answer-block" for="practiceAnswer">
+        <span data-i18n="practice_answer_label">答案</span>
+        <input id="practiceAnswer" type="text" inputmode="numeric" spellcheck="false" />
+      </label>
+
+      <div class="practice-actions">
+        <button id="practiceSubmit" type="button" data-i18n="practice_submit">提交答案</button>
+        <button id="practiceNext" type="button" data-i18n="practice_next_problem">换一题</button>
+      </div>
+
+      <div id="practiceFeedback" class="practice-feedback" style="display:none">
+        <div id="practiceFeedbackBadge" class="practice-feedback-badge"></div>
+        <div id="practiceFeedbackText" class="practice-feedback-text"></div>
+        <div id="practiceStrategy" class="practice-strategy" style="display:none"></div>
+      </div>
+    </section>
   </div>
 
   <!-- ====== 主界面（单列聚焦） ====== -->

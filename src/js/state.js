@@ -14,6 +14,11 @@ function defaultState() {
     profile:  { locale: 'zh', theme: 'lab' },
     progress: { clearedLevelIds: [], currentLevelId: '' },
     learning: { seenOnboarding: false, lastPlayedAt: null },
+    practice: {
+      currentDeckId: 'smart-calc',
+      bestByDeck: {},
+      lastResultByDeck: {},
+    },
     meta:     { schemaVersion: 1 },
   };
 }
@@ -78,6 +83,9 @@ export function loadState() {
         if (!_state[k]) _state[k] = def[k];
       }
       if (!_state.profile.theme) _state.profile.theme = def.profile.theme;
+      if (!_state.practice.currentDeckId) _state.practice.currentDeckId = def.practice.currentDeckId;
+      if (!_state.practice.bestByDeck) _state.practice.bestByDeck = {};
+      if (!_state.practice.lastResultByDeck) _state.practice.lastResultByDeck = {};
       // v1→v2 迁移：数字索引 → 稳定字符串 ID
       migrateNumericCleared(_state);
     }

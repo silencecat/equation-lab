@@ -14,6 +14,7 @@ export async function openApp(page, options = {}) {
     locale = 'zh',
     clearedLevelIds = [],
     seenOnboarding = true,
+    stayOnHome = false,
   } = options;
 
   const state = {
@@ -34,6 +35,7 @@ export async function openApp(page, options = {}) {
   const errors = attachBrowserErrorCollector(page);
   await page.goto('/equation_lab.html');
   await expect(page.locator('#homeView')).toBeVisible();
+  if (stayOnHome) return errors;
   // 进入第一个旅程以切换到游戏视图
   await page.locator('.journey-card').first().click();
   await expect(page.locator('#title')).toBeVisible();

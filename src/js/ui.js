@@ -17,6 +17,7 @@ import {
   isSolved, hasHiddenSigns, solveForX,
 } from './engine.js';
 import { chapters, flattenLevels, journeys } from './levels.js';
+import { practiceDecks, createPracticeQuestion, evaluatePracticeResult, formatElapsed } from './practice.js';
 import { getCoachTip } from './coach.js';
 import { t, lt, setLocale, getLocale, applyStaticI18n, initLocale } from './i18n.js';
 import { loadState, getState, updateState } from './state.js';
@@ -35,7 +36,7 @@ const ISSUES_URL = 'https://github.com/silencecat/equation-lab/issues/new';
 const allLevels = flattenLevels();
 
 const gameState = {
-  mode: 'home',          // 'home' | 'level' | 'play'
+  mode: 'home',          // 'home' | 'practice' | 'level' | 'play'
   journeyId: null,       // 当前所在旅程 ID (e.g. 'j1')
   levelIdx: 0,           // 当前关卡在 allLevels 中的索引
   equation: null,        // 当前等式
@@ -52,6 +53,14 @@ const uiState = {
   hint: null,   // { type:'move'|'tool'|'expand', ... }
   anim: null,   // 动画状态机: { phase, raw, final, merges, mulInfo, op, timer }
   celebrated: false,  // 防止 confetti 重复触发
+};
+
+const practiceState = {
+  deckId: 'smart-calc',
+  question: null,
+  startedAt: 0,
+  timerId: null,
+  feedback: null,
 };
 
 /* ═══════════════════════════════════════════
@@ -457,10 +466,12 @@ function detectJourney(idx) {
 function showHome() {
   gameState.mode = 'home';
   gameState.journeyId = null;
+  stopPracticeTimer();
   removeNextArrow();
   clearTutorial();
   dismissGate();
   if ($('homeView')) $('homeView').style.display = '';
+  if ($('practiceView')) $('practiceView').style.display = 'none';
   if ($('appView')) $('appView').style.display = 'none';
   closeDrawer();
   renderHome();
@@ -476,7 +487,9 @@ function enterJourney(jid) {
   let target = range.find(i => !cleared.has(allLevels[i].id));
   // 全通关了就加载第一关
   if (target == null) target = range[0];
+  stopPracticeTimer();
   if ($('homeView')) $('homeView').style.display = 'none';
+  if ($('practiceView')) $('practiceView').style.display = 'none';
   if ($('appView')) $('appView').style.display = '';
   loadLevel(target);
 }
@@ -517,6 +530,159 @@ function renderHome() {
   });
 }
 
+function getPracticePrefs() {
+  const state = getState();
+  if (!state.practice || !state.practice.bestByDeck || !state.practice.lastResultByDeck) {
+    const normalized = {
+      currentDeckId: state.practice?.currentDeckId || 'smart-calc',
+      bestByDeck: state.practice?.bestByDeck || {},
+      lastResultByDeck: state.practice?.lastResultByDeck || {},
+    };
+    updateState('practice', normalized);
+    return normalized;
+  }
+  return state.practice;
+}
+
+function stopPracticeTimer() {
+  if (practiceState.timerId) {
+    clearInterval(practiceState.timerId);
+    practiceState.timerId = null;
+  }
+}
+
+function practiceElapsedMs() {
+  return practiceState.startedAt ? Date.now() - practiceState.startedAt : 0;
+}
+
+function updatePracticeTimerPill() {
+  const pill = $('practiceTimerPill');
+  if (!pill) return;
+  pill.textContent = t('practice_timer', formatElapsed(practiceElapsedMs()));
+}
+
+function savePracticeResult(deckId, result) {
+  const prefs = getPracticePrefs();
+  const snapshot = {
+    tier: result.tier,
+    title: result.title,
+    comment: result.comment,
+    elapsedMs: result.elapsedMs,
+    at: Date.now(),
+  };
+  updateState('practice.lastResultByDeck', {
+    ...prefs.lastResultByDeck,
+    [deckId]: snapshot,
+  });
+
+  const bestByDeck = getPracticePrefs().bestByDeck;
+  const currentBest = bestByDeck[deckId];
+  if (!currentBest || result.elapsedMs < currentBest.elapsedMs) {
+    updateState('practice.bestByDeck', {
+      ...bestByDeck,
+      [deckId]: snapshot,
+    });
+    return true;
+  }
+  return false;
+}
+
+function renderPractice() {
+  if (gameState.mode !== 'practice' || !practiceState.question) return;
+  const deck = practiceState.question.deck || practiceDecks[0];
+  const prefs = getPracticePrefs();
+  const best = prefs.bestByDeck[deck.id];
+  const last = prefs.lastResultByDeck[deck.id];
+
+  $('practiceTitle').textContent = deck.icon + ' ' + lt(deck.name);
+  $('practiceSubtitle').textContent = lt(deck.desc);
+  $('practiceExpression').textContent = practiceState.question.expression;
+  $('practiceHintText').textContent = lt(practiceState.question.hint);
+  $('practiceBestTime').textContent = best ? formatElapsed(best.elapsedMs) : t('practice_none');
+  $('practiceLastRating').textContent = last ? lt(last.title) : t('practice_none');
+  $('practiceAnswer').placeholder = t('practice_answer_placeholder');
+  updatePracticeTimerPill();
+
+  const feedbackBox = $('practiceFeedback');
+  const feedbackBadge = $('practiceFeedbackBadge');
+  const feedbackText = $('practiceFeedbackText');
+  const strategy = $('practiceStrategy');
+  const feedback = practiceState.feedback;
+
+  $('practiceAnswer').disabled = !!feedback?.correct;
+  $('practiceSubmit').disabled = !!feedback?.correct;
+
+  if (!feedback) {
+    feedbackBox.style.display = 'none';
+    feedbackBox.classList.remove('bad');
+    feedbackBadge.textContent = '';
+    feedbackText.textContent = '';
+    strategy.style.display = 'none';
+    strategy.textContent = '';
+    return;
+  }
+
+  feedbackBox.style.display = '';
+  if (feedback.correct) {
+    feedbackBox.classList.remove('bad');
+    feedbackBadge.textContent = lt(feedback.title);
+    feedbackText.textContent = t('practice_time_used', formatElapsed(feedback.elapsedMs)) + ' · ' + lt(feedback.comment) + (feedback.isBest ? ' ' + t('practice_new_best') : '');
+    strategy.style.display = '';
+    strategy.textContent = t('practice_strategy_label') + '：' + lt(practiceState.question.strategy);
+  } else {
+    feedbackBox.classList.add('bad');
+    feedbackBadge.textContent = t('practice_retry_title');
+    const key = feedback.reason === 'empty'
+      ? 'practice_retry_empty'
+      : feedback.reason === 'invalid'
+        ? 'practice_retry_invalid'
+        : 'practice_retry_wrong';
+    feedbackText.textContent = t(key);
+    strategy.style.display = 'none';
+    strategy.textContent = '';
+  }
+}
+
+function startPracticeRound(deckId = 'smart-calc') {
+  practiceState.deckId = deckId;
+  practiceState.question = createPracticeQuestion(deckId);
+  practiceState.feedback = null;
+  practiceState.startedAt = Date.now();
+  updateState('practice.currentDeckId', deckId);
+  stopPracticeTimer();
+  practiceState.timerId = setInterval(updatePracticeTimerPill, 250);
+  if ($('practiceAnswer')) {
+    $('practiceAnswer').value = '';
+    $('practiceAnswer').disabled = false;
+  }
+  if ($('practiceSubmit')) $('practiceSubmit').disabled = false;
+  renderPractice();
+}
+
+function showPractice(deckId = getPracticePrefs().currentDeckId || 'smart-calc') {
+  gameState.mode = 'practice';
+  gameState.journeyId = null;
+  removeNextArrow();
+  clearTutorial();
+  dismissGate();
+  closeDrawer();
+  if ($('homeView')) $('homeView').style.display = 'none';
+  if ($('appView')) $('appView').style.display = 'none';
+  if ($('practiceView')) $('practiceView').style.display = '';
+  startPracticeRound(deckId);
+}
+
+function submitPracticeAnswer() {
+  if (!practiceState.question || practiceState.feedback?.correct) return;
+  const result = evaluatePracticeResult(practiceState.question, $('practiceAnswer').value, practiceElapsedMs());
+  if (result.correct) {
+    stopPracticeTimer();
+    result.isBest = savePracticeResult(practiceState.deckId, result);
+  }
+  practiceState.feedback = result;
+  renderPractice();
+}
+
 function getTheme() {
   return getState().profile?.theme === 'playful' ? 'playful' : 'lab';
 }
@@ -542,7 +708,9 @@ function toggleTheme() {
     t: t('theme_switched_t'),
     m: t('theme_switched_m', t(next === 'playful' ? 'theme_playful' : 'theme_lab')),
   };
-  render();
+  if (gameState.mode === 'home') renderHome();
+  else if (gameState.mode === 'practice') renderPractice();
+  else render();
 }
 
 /* ═══════════════════════════════════════════
@@ -596,10 +764,12 @@ function loadLevel(idx) {
   gameState.mode = 'level';
   gameState.gateOpen = false;
   gameState.custom = null;
+  stopPracticeTimer();
   gameState.levelIdx = idx;
   // 自动推断旅程（如果还没设置）
   if (!gameState.journeyId) gameState.journeyId = detectJourney(idx);
   if ($('homeView')) $('homeView').style.display = 'none';
+  if ($('practiceView')) $('practiceView').style.display = 'none';
   if ($('appView')) $('appView').style.display = '';
   const lv = allLevels[idx];
   if (lv.type === 'build') {
@@ -634,7 +804,9 @@ function loadPlayScene(scene, logText, statusTitle, statusMsg) {
   gameState.mode = 'play';
   gameState.custom = scene;
   gameState.journeyId = null;
+  stopPracticeTimer();
   if ($('homeView')) $('homeView').style.display = 'none';
+  if ($('practiceView')) $('practiceView').style.display = 'none';
   if ($('appView')) $('appView').style.display = '';
   // 自动计算实验线的 target
   const autoTarget = solveForX(scene.eq);
@@ -2363,6 +2535,7 @@ export function init() {
   /* ── E2E 测试钩子 ── */
   window.__testLoadLevel = loadLevel;
   window.__testCurrentLevel = () => allLevels[gameState.levelIdx];
+  window.__testCurrentPractice = () => practiceState.question;
 
   /* ── 首页起步 ── */
   showHome();
@@ -2378,6 +2551,8 @@ export function init() {
     applyStaticI18n();
     if (gameState.mode === 'home') {
       renderHome();
+    } else if (gameState.mode === 'practice') {
+      renderPractice();
     } else {
       uiState.status = {
         k: '',
@@ -2444,9 +2619,37 @@ export function init() {
   if (homeSandbox) {
     homeSandbox.addEventListener('click', () => {
       if ($('homeView')) $('homeView').style.display = 'none';
+      if ($('practiceView')) $('practiceView').style.display = 'none';
       if ($('appView')) $('appView').style.display = '';
       gameState.journeyId = null;
       loadRandomPlay();
+    });
+  }
+
+  const homePractice = $('homePractice');
+  if (homePractice) {
+    homePractice.addEventListener('click', () => showPractice());
+  }
+
+  const practiceBackHome = $('practiceBackHome');
+  if (practiceBackHome) {
+    practiceBackHome.addEventListener('click', showHome);
+  }
+
+  const practiceSubmit = $('practiceSubmit');
+  if (practiceSubmit) {
+    practiceSubmit.addEventListener('click', submitPracticeAnswer);
+  }
+
+  const practiceNext = $('practiceNext');
+  if (practiceNext) {
+    practiceNext.addEventListener('click', () => startPracticeRound(practiceState.deckId));
+  }
+
+  const practiceAnswer = $('practiceAnswer');
+  if (practiceAnswer) {
+    practiceAnswer.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitPracticeAnswer();
     });
   }
 

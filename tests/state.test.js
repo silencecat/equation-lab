@@ -32,6 +32,8 @@ describe('state.js', () => {
       expect(s.profile.locale).toBe('zh');
       expect(s.progress.clearedLevelIds).toEqual([]);
       expect(s.learning.seenOnboarding).toBe(false);
+      expect(s.practice.currentDeckId).toBe('smart-calc');
+      expect(s.practice.bestByDeck).toEqual({});
     });
 
     it('loadState 后 localStorage 已写入 eqlab_state_v1', async () => {
