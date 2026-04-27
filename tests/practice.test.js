@@ -29,6 +29,24 @@ describe('practice deck', () => {
       expect(question.hint.zh).toBeTruthy();
     });
   });
+
+  it('uses visible friendly-number signals instead of opaque random numbers', () => {
+    const expectations = [
+      ['factor-pair', /65|35|100|25|125|48/],
+      ['factor-diff', /37|23|48|200|100|10/],
+      ['regroup-diff', /276|398|463|725|512/],
+      ['mul-div-chain', /25|125|4|8/],
+    ];
+
+    expectations.forEach(([templateId, signal]) => {
+      const question = createPracticeQuestion('smart-calc', {
+        templateId,
+        random: () => 0.01,
+      });
+      const joinedText = [question.expression, question.hint.zh, question.strategy.zh].join(' ');
+      expect(joinedText).toMatch(signal);
+    });
+  });
 });
 
 describe('practice answer parsing', () => {
