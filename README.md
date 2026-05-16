@@ -31,6 +31,7 @@ The project is designed for children first, but it is also open to parents, teac
 - Support integers, simple fractions, grouped expressions, and story problems
 - Use short "read before you move" gates to slow down blind symbol shuffling
 - Provide a separate smart-calculation practice area without turning the main quest into a generic worksheet site
+- Run practice decks as fixed-length sessions, banking local coins only after a full session is completed
 - Offer multilingual UI and curriculum text in Chinese, Japanese, and English
 - Run as a static website
 - Export a single-file offline version for families who just want to double-click and use it

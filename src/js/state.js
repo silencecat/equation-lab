@@ -18,6 +18,10 @@ function defaultState() {
       currentDeckId: 'smart-calc',
       bestByDeck: {},
       lastResultByDeck: {},
+      sessionBestByDeck: {},
+      lastSessionResultByDeck: {},
+      totalCoins: 0,
+      completedSessions: 0,
     },
     meta:     { schemaVersion: 1 },
   };
@@ -86,6 +90,10 @@ export function loadState() {
       if (!_state.practice.currentDeckId) _state.practice.currentDeckId = def.practice.currentDeckId;
       if (!_state.practice.bestByDeck) _state.practice.bestByDeck = {};
       if (!_state.practice.lastResultByDeck) _state.practice.lastResultByDeck = {};
+      if (!_state.practice.sessionBestByDeck) _state.practice.sessionBestByDeck = {};
+      if (!_state.practice.lastSessionResultByDeck) _state.practice.lastSessionResultByDeck = {};
+      if (!Number.isFinite(_state.practice.totalCoins)) _state.practice.totalCoins = 0;
+      if (!Number.isFinite(_state.practice.completedSessions)) _state.practice.completedSessions = 0;
       // v1→v2 迁移：数字索引 → 稳定字符串 ID
       migrateNumericCleared(_state);
     }

@@ -1477,12 +1477,16 @@
        练习区
        ══════════════════════════════════════ */
     .practice {
-      max-width: 640px; margin: 0 auto;
+      max-width: 920px; margin: 0 auto;
       padding: 18px 14px 28px;
       display: flex; flex-direction: column; gap: 14px;
       min-height: 100vh;
     }
     .practice-card {
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
       border: 1px solid color-mix(in srgb, var(--chapter-border) 70%, white);
       border-radius: 24px;
       padding: 18px;
@@ -1533,6 +1537,89 @@
       font-size: 12px; font-weight: 900;
       white-space: nowrap;
     }
+    #practiceCoinPill.coin-pop {
+      animation: practiceCoinPillPop .86s cubic-bezier(.18, .9, .22, 1.25);
+    }
+    .practice-lobby {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .practice-lobby-summary {
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 75%, white);
+      border-radius: 22px;
+      padding: 16px 18px;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--chapter-soft) 52%, white), rgba(255,255,255,.94));
+      box-shadow: 0 12px 28px color-mix(in srgb, var(--chapter-accent) 9%, transparent);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .practice-lobby-summary strong {
+      color: var(--chapter-ink); font-size: 16px;
+    }
+    .practice-lobby-summary span {
+      color: var(--story-text); font-size: 14px; line-height: 1.65;
+    }
+    .practice-deck-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .practice-deck-card {
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 68%, white);
+      border-radius: 22px;
+      padding: 15px;
+      background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--chapter-soft) 50%, transparent), transparent 46%),
+        rgba(255,255,255,.94);
+      color: var(--text);
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px 12px;
+      text-align: left;
+      box-shadow: 0 12px 26px rgba(60, 42, 18, .06);
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .practice-deck-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--chapter-accent);
+      box-shadow: 0 16px 32px color-mix(in srgb, var(--chapter-accent) 14%, transparent);
+    }
+    .practice-deck-card.active {
+      border-color: var(--chapter-accent);
+      background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--chapter-accent) 18%, transparent), transparent 46%),
+        rgba(255,255,255,.96);
+    }
+    .practice-deck-card-icon {
+      width: 42px; height: 42px; border-radius: 16px;
+      display: grid; place-items: center;
+      background: color-mix(in srgb, var(--chapter-soft) 58%, white);
+      font-size: 22px;
+    }
+    .practice-deck-card-main {
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .practice-deck-card-main strong {
+      font-size: 16px; color: var(--chapter-ink);
+    }
+    .practice-deck-card-main span {
+      font-size: 13px; line-height: 1.5; color: var(--story-text);
+    }
+    .practice-deck-card-meta,
+    .practice-deck-card-cta {
+      grid-column: 1 / -1;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .practice-deck-card-meta {
+      color: var(--muted);
+    }
+    .practice-deck-card-cta {
+      justify-self: start;
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: #fff;
+      background: var(--chapter-accent);
+    }
     .practice-expression {
       font: 800 30px/1.35 "Consolas", "Trebuchet MS", monospace;
       color: var(--text);
@@ -1575,29 +1662,6 @@
       border-radius: 18px;
       background: rgba(255,255,255,.66);
     }
-    .practice-deck-label {
-      font-size: 12px; font-weight: 900;
-      color: var(--muted);
-      margin-right: 2px;
-    }
-    .practice-deck-btn {
-      border: 1px solid color-mix(in srgb, var(--chapter-border) 70%, white);
-      border-radius: 999px;
-      background: rgba(255,255,255,.86);
-      color: var(--text);
-      padding: 7px 11px;
-      font-size: 12px; font-weight: 800;
-      cursor: pointer;
-    }
-    .practice-deck-btn.active {
-      background: var(--chapter-accent);
-      color: #fff;
-      border-color: var(--chapter-accent);
-    }
-    .practice-deck-btn:disabled {
-      cursor: default;
-      opacity: 1;
-    }
     #practiceSubmit {
       background: var(--chapter-accent); color: #fff;
       box-shadow: 0 10px 24px color-mix(in srgb, var(--chapter-accent) 22%, transparent);
@@ -1632,6 +1696,123 @@
       border-top: 1px dashed color-mix(in srgb, var(--chapter-border) 90%, white);
       padding-top: 10px;
       font-size: 14px; line-height: 1.65; color: var(--chapter-ink);
+    }
+    .practice-mini-reward {
+      position: absolute;
+      top: 16px; right: 18px;
+      z-index: 5;
+      pointer-events: none;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: linear-gradient(135deg, #fff4be, #ffd56a);
+      border: 1px solid #e0b54d;
+      color: #7a4b00;
+      font-size: 13px; font-weight: 900;
+      box-shadow: 0 12px 28px rgba(151, 101, 10, .2);
+      animation: practiceMiniReward 1.55s cubic-bezier(.18, .9, .22, 1.1) forwards;
+    }
+    .practice-mini-reward::before {
+      content: "✓";
+      display: inline-grid; place-items: center;
+      width: 18px; height: 18px; margin-right: 6px;
+      border-radius: 999px;
+      background: #1d8f63; color: #fff;
+      font-size: 12px;
+    }
+    .practice-celebration {
+      position: fixed; inset: 0;
+      z-index: 90;
+      pointer-events: none;
+      display: grid; place-items: center;
+      background:
+        radial-gradient(circle at center, rgba(255, 214, 112, .34), transparent 34%),
+        radial-gradient(circle at 35% 35%, rgba(91, 180, 147, .2), transparent 28%);
+      animation: practiceCelebrationFade 1.85s ease forwards;
+    }
+    .practice-celebration-card {
+      min-width: min(360px, calc(100vw - 48px));
+      border-radius: 28px;
+      padding: 28px 30px;
+      background: linear-gradient(145deg, #fff9da, #ffffff 72%);
+      border: 2px solid #f0cf69;
+      box-shadow: 0 28px 70px rgba(80, 52, 8, .22);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      text-align: center;
+      animation: practiceCelebrationCard 1.05s cubic-bezier(.18, .9, .22, 1.22);
+    }
+    .practice-celebration-card strong {
+      font-size: 28px; color: var(--chapter-ink);
+    }
+    .practice-celebration-card span {
+      font-size: 16px; font-weight: 900; color: #8a5a05;
+    }
+    .practice-celebration-burst {
+      color: #d69b09;
+      letter-spacing: .36em;
+      font-weight: 900;
+    }
+    .practice-celebration-spark {
+      position: absolute;
+      left: 50%; top: 50%;
+      color: #d69b09;
+      font-size: 22px;
+      animation: practiceSparkFly 1.15s ease-out forwards;
+    }
+    .practice-flying-coin {
+      position: fixed;
+      z-index: 100;
+      width: 18px; height: 18px;
+      border-radius: 999px;
+      pointer-events: none;
+      background: radial-gradient(circle at 30% 30%, #fff6ae, #f0bd34 58%, #b77608);
+      border: 1px solid #a86905;
+      color: transparent;
+      box-shadow: 0 8px 16px rgba(150, 98, 8, .2);
+      transform: translate(-50%, -50%);
+      animation: practiceCoinFly 1.05s cubic-bezier(.2, .74, .24, 1) forwards;
+    }
+    @keyframes practiceMiniReward {
+      0% { opacity: 0; transform: translateY(12px) scale(.86); }
+      20% { opacity: 1; transform: translateY(0) scale(1.05); }
+      72% { opacity: 1; transform: translateY(-10px) scale(1); }
+      100% { opacity: 0; transform: translateY(-24px) scale(.96); }
+    }
+    @keyframes practiceCelebrationFade {
+      0% { opacity: 0; }
+      12% { opacity: 1; }
+      82% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @keyframes practiceCelebrationCard {
+      0% { opacity: 0; transform: translateY(24px) scale(.78) rotate(-2deg); }
+      48% { opacity: 1; transform: translateY(-4px) scale(1.04) rotate(1deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+    }
+    @keyframes practiceSparkFly {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+      18% { opacity: 1; }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) scale(1.35) rotate(160deg); }
+    }
+    @keyframes practiceCoinFly {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.6) rotate(0); }
+      12% { opacity: 1; }
+      68% { opacity: 1; transform: translate(calc(-50% + var(--coin-mid-x)), calc(-50% + var(--coin-mid-y))) scale(1.16) rotate(260deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--coin-dx)), calc(-50% + var(--coin-dy))) scale(.28) rotate(560deg); }
+    }
+    @keyframes practiceCoinPillPop {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.12); box-shadow: 0 0 0 8px rgba(240, 189, 52, .18); }
+      100% { transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .practice-mini-reward,
+      .practice-celebration,
+      .practice-celebration-card,
+      .practice-celebration-spark,
+      .practice-flying-coin,
+      #practiceCoinPill.coin-pop {
+        animation-duration: .01ms !important;
+      }
     }
 
     /* ══════════════════════════════════════
@@ -1776,13 +1957,15 @@
         <div id="practiceSubtitle" class="topbar-sub"></div>
       </div>
       <div class="topbar-actions">
-        <div id="practiceTimerPill" class="topbar-badge"></div>
+        <div id="practiceCoinPill" class="topbar-badge" role="status" aria-live="polite" aria-atomic="true"></div>
+        <div id="practiceTimerPill" class="topbar-badge" aria-live="off"></div>
       </div>
     </header>
 
-    <div id="practiceDeckStrip" class="practice-deck-strip"></div>
+    <section id="practiceLobby" class="practice-lobby"></section>
+    <div id="practiceDeckStrip" class="practice-deck-strip" role="status" aria-live="polite" aria-atomic="true"></div>
 
-    <section class="practice-card">
+    <section class="practice-card" id="practiceCard">
       <div class="practice-meta">
         <div class="practice-meta-item">
           <span data-i18n="practice_best">最佳用时</span>
@@ -1819,7 +2002,7 @@
         <button id="practiceNext" type="button" data-i18n="practice_next_problem">换一题</button>
       </div>
 
-      <div id="practiceFeedback" class="practice-feedback" style="display:none">
+      <div id="practiceFeedback" class="practice-feedback" role="status" aria-live="polite" aria-atomic="true" tabindex="-1" style="display:none">
         <div id="practiceFeedbackBadge" class="practice-feedback-badge"></div>
         <div id="practiceFeedbackText" class="practice-feedback-text"></div>
         <div id="practiceStrategy" class="practice-strategy" style="display:none"></div>
@@ -1993,7 +2176,7 @@
   <script>
     // 检测 ES 模块是否成功加载
     setTimeout(function () {
-      if (!window.__EQ_INIT__) {
+      if (!window.__EQ_INIT__ && window.location.protocol === 'file:') {
         var msg = document.createElement('div');
         msg.style.cssText =
           'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;' +

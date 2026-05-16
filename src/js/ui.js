@@ -57,11 +57,20 @@ const uiState = {
 
 const practiceState = {
   deckId: 'smart-calc',
+  mode: 'lobby',
   question: null,
   startedAt: 0,
   timerId: null,
   feedback: null,
+  questionIndex: 0,
+  totalQuestions: 10,
+  pendingCoins: 0,
+  completedQuestions: 0,
+  sessionQuestionKeys: [],
+  sessionResult: null,
 };
+
+const PRACTICE_SESSION_SIZE = 10;
 
 /* ═══════════════════════════════════════════
    动画辅助
@@ -467,6 +476,7 @@ function showHome() {
   gameState.mode = 'home';
   gameState.journeyId = null;
   stopPracticeTimer();
+  clearPracticeRewardAnimations();
   removeNextArrow();
   clearTutorial();
   dismissGate();
@@ -539,11 +549,22 @@ function renderHome() {
 
 function getPracticePrefs() {
   const state = getState();
-  if (!state.practice || !state.practice.bestByDeck || !state.practice.lastResultByDeck) {
+  if (
+    !state.practice ||
+    !state.practice.bestByDeck ||
+    !state.practice.lastResultByDeck ||
+    !state.practice.sessionBestByDeck ||
+    !state.practice.lastSessionResultByDeck ||
+    !Number.isFinite(state.practice.totalCoins)
+  ) {
     const normalized = {
       currentDeckId: state.practice?.currentDeckId || 'smart-calc',
       bestByDeck: state.practice?.bestByDeck || {},
       lastResultByDeck: state.practice?.lastResultByDeck || {},
+      sessionBestByDeck: state.practice?.sessionBestByDeck || {},
+      lastSessionResultByDeck: state.practice?.lastSessionResultByDeck || {},
+      totalCoins: Number.isFinite(state.practice?.totalCoins) ? state.practice.totalCoins : 0,
+      completedSessions: Number.isFinite(state.practice?.completedSessions) ? state.practice.completedSessions : 0,
     };
     updateState('practice', normalized);
     return normalized;
@@ -565,10 +586,19 @@ function practiceElapsedMs() {
 function updatePracticeTimerPill() {
   const pill = $('practiceTimerPill');
   if (!pill) return;
-  pill.textContent = t('practice_timer', formatElapsed(practiceElapsedMs()));
+  pill.textContent = practiceState.mode === 'session'
+    ? t('practice_timer', formatElapsed(practiceElapsedMs()))
+    : t('practice_timer_idle');
 }
 
-function savePracticeResult(deckId, result) {
+function updatePracticeCoinPill() {
+  const pill = $('practiceCoinPill');
+  if (!pill) return;
+  const prefs = getPracticePrefs();
+  pill.textContent = t('practice_total_coins', prefs.totalCoins || 0);
+}
+
+function savePracticeResult(deckId, result, sessionCoins = 0) {
   const prefs = getPracticePrefs();
   const snapshot = {
     tier: result.tier,
@@ -578,15 +608,22 @@ function savePracticeResult(deckId, result) {
     points: result.points || 0,
     at: Date.now(),
   };
-  updateState('practice.lastResultByDeck', {
-    ...prefs.lastResultByDeck,
+  updateState('practice.lastSessionResultByDeck', {
+    ...prefs.lastSessionResultByDeck,
     [deckId]: snapshot,
   });
 
-  const bestByDeck = getPracticePrefs().bestByDeck;
+  const latestPrefs = getPracticePrefs();
+  updateState('practice', {
+    ...latestPrefs,
+    totalCoins: (latestPrefs.totalCoins || 0) + sessionCoins,
+    completedSessions: (latestPrefs.completedSessions || 0) + 1,
+  });
+
+  const bestByDeck = getPracticePrefs().sessionBestByDeck;
   const currentBest = bestByDeck[deckId];
   if (!currentBest || result.elapsedMs < currentBest.elapsedMs) {
-    updateState('practice.bestByDeck', {
+    updateState('practice.sessionBestByDeck', {
       ...bestByDeck,
       [deckId]: snapshot,
     });
@@ -595,54 +632,254 @@ function savePracticeResult(deckId, result) {
   return false;
 }
 
-function renderPracticeDeckStrip(activeDeckId) {
-  const strip = $('practiceDeckStrip');
-  if (!strip) return;
-  strip.innerHTML = '';
+function makePracticeSessionResult(elapsedMs, coins) {
+  return {
+    correct: true,
+    tier: 'session',
+    title: {
+      zh: '完成一局',
+      ja: 'セット完了',
+      en: 'Session Complete',
+    },
+    comment: {
+      zh: `完成 ${PRACTICE_SESSION_SIZE} 题，本局硬币已经倒进硬币罐。`,
+      ja: `${PRACTICE_SESSION_SIZE} 問を終えました。このセットのコインをコインびんに入れました。`,
+      en: `Finished ${PRACTICE_SESSION_SIZE} problems. The pouch coins went into the jar.`,
+    },
+    elapsedMs,
+    points: coins,
+  };
+}
 
-  const label = document.createElement('span');
-  label.className = 'practice-deck-label';
-  label.textContent = t('practice_deck_label');
-  strip.appendChild(label);
+function clearPracticeRewardAnimations() {
+  document.querySelectorAll('.practice-mini-reward, .practice-celebration, .practice-flying-coin')
+    .forEach((node) => node.remove());
+}
 
+function prefersReducedMotion() {
+  return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+}
+
+function showPracticeCorrectAnimation(points) {
+  const card = $('practiceCard');
+  if (!card) return;
+  const reward = document.createElement('div');
+  reward.className = 'practice-mini-reward';
+  reward.textContent = t('practice_correct_reward', points || 0);
+  card.appendChild(reward);
+  setTimeout(() => reward.remove(), 1700);
+}
+
+function showPracticeCompletionAnimation(coins) {
+  const root = $('practiceView') || document.body;
+  const overlay = document.createElement('div');
+  overlay.className = 'practice-celebration';
+  overlay.setAttribute('role', 'status');
+  overlay.setAttribute('aria-live', 'polite');
+  overlay.innerHTML =
+    '<div class="practice-celebration-card">' +
+      '<div class="practice-celebration-burst">✦ ✦ ✦</div>' +
+      '<strong>' + t('practice_complete_reward_title') + '</strong>' +
+      '<span>' + t('practice_complete_reward', coins || 0) + '</span>' +
+    '</div>';
+  root.appendChild(overlay);
+
+  if (!prefersReducedMotion()) {
+    for (let i = 0; i < 12; i++) {
+      const spark = document.createElement('span');
+      spark.className = 'practice-celebration-spark';
+      spark.textContent = i % 3 === 0 ? '★' : '✦';
+      spark.style.setProperty('--spark-x', `${Math.cos(i * 0.92) * (90 + i * 5)}px`);
+      spark.style.setProperty('--spark-y', `${Math.sin(i * 0.92) * (58 + i * 3)}px`);
+      spark.style.animationDelay = `${i * 42}ms`;
+      overlay.appendChild(spark);
+    }
+    flyPracticeCoinsToTotal(coins);
+  }
+
+  setTimeout(() => overlay.remove(), prefersReducedMotion() ? 900 : 1900);
+}
+
+function flyPracticeCoinsToTotal(coins) {
+  const fromEl = $('practiceFeedback') || $('practiceCard');
+  const toEl = $('practiceCoinPill');
+  if (!fromEl || !toEl) return;
+  const fromRect = fromEl.getBoundingClientRect();
+  const toRect = toEl.getBoundingClientRect();
+  const startX = fromRect.left + fromRect.width * 0.5;
+  const startY = fromRect.top + fromRect.height * 0.45;
+  const endX = toRect.left + toRect.width * 0.5;
+  const endY = toRect.top + toRect.height * 0.5;
+  const count = Math.min(16, Math.max(8, Math.round((coins || 0) / 12)));
+
+  toEl.classList.remove('coin-pop');
+  void toEl.offsetWidth;
+  toEl.classList.add('coin-pop');
+  setTimeout(() => toEl.classList.remove('coin-pop'), 900);
+
+  for (let i = 0; i < count; i++) {
+    const coin = document.createElement('span');
+    coin.className = 'practice-flying-coin';
+    coin.textContent = '●';
+    const fanX = (i - (count - 1) / 2) * 8;
+    const fanY = (i % 3 - 1) * 10;
+    const x = startX + fanX;
+    const y = startY + fanY;
+    const dx = endX - x;
+    const dy = endY - y;
+    coin.style.left = `${x}px`;
+    coin.style.top = `${y}px`;
+    coin.style.setProperty('--coin-dx', `${dx}px`);
+    coin.style.setProperty('--coin-dy', `${dy}px`);
+    coin.style.setProperty('--coin-mid-x', `${dx * 0.55 + (i % 2 ? 32 : -32)}px`);
+    coin.style.setProperty('--coin-mid-y', `${dy * 0.48 - 92 - (i % 4) * 8}px`);
+    coin.style.animationDelay = `${i * 38}ms`;
+    document.body.appendChild(coin);
+    setTimeout(() => coin.remove(), 1350 + i * 38);
+  }
+}
+
+function practiceQuestionKey(question) {
+  const expression = typeof question.expression === 'string'
+    ? question.expression
+    : JSON.stringify(question.expression || '');
+  return `${question.deckId || practiceState.deckId}:${question.id || expression}`;
+}
+
+function createSessionPracticeQuestion(deckId) {
+  let fallback = null;
+  let fallbackDifferentFromLast = null;
+  const lastKey = practiceState.sessionQuestionKeys[practiceState.sessionQuestionKeys.length - 1];
+  for (let attempt = 0; attempt < 32; attempt++) {
+    const question = createPracticeQuestion(deckId);
+    const key = practiceQuestionKey(question);
+    if (!fallback) fallback = { question, key };
+    if (key !== lastKey && !fallbackDifferentFromLast) fallbackDifferentFromLast = { question, key };
+    if (!practiceState.sessionQuestionKeys.includes(key)) {
+      practiceState.sessionQuestionKeys.push(key);
+      return question;
+    }
+  }
+  if (fallbackDifferentFromLast) {
+    practiceState.sessionQuestionKeys.push(fallbackDifferentFromLast.key);
+    return fallbackDifferentFromLast.question;
+  }
+  if (fallback) {
+    practiceState.sessionQuestionKeys.push(fallback.key);
+    return fallback.question;
+  }
+  return createPracticeQuestion(deckId);
+}
+
+function showPracticeLobby() {
+  stopPracticeTimer();
+  clearPracticeRewardAnimations();
+  practiceState.mode = 'lobby';
+  practiceState.question = null;
+  practiceState.feedback = null;
+  practiceState.sessionResult = null;
+  practiceState.startedAt = 0;
+  const prefs = getPracticePrefs();
+  const activeDeckId = prefs.currentDeckId || 'smart-calc';
+
+  if ($('practiceLobby')) $('practiceLobby').style.display = '';
+  if ($('practiceDeckStrip')) $('practiceDeckStrip').style.display = 'none';
+  if ($('practiceCard')) $('practiceCard').style.display = 'none';
+  $('practiceTitle').textContent = t('practice_lobby_title');
+  $('practiceSubtitle').textContent = t('practice_lobby_subtitle', PRACTICE_SESSION_SIZE);
+  updatePracticeTimerPill();
+  updatePracticeCoinPill();
+  renderPracticeLobby(activeDeckId);
+}
+
+function renderPracticeLobby(activeDeckId) {
+  const lobby = $('practiceLobby');
+  if (!lobby) return;
+  const prefs = getPracticePrefs();
+  lobby.innerHTML = '';
+
+  const summary = document.createElement('div');
+  summary.className = 'practice-lobby-summary';
+  summary.innerHTML =
+    '<strong>' + t('practice_lobby_rule_title') + '</strong>' +
+    '<span>' + t('practice_lobby_rule_body', PRACTICE_SESSION_SIZE) + '</span>';
+  lobby.appendChild(summary);
+
+  const grid = document.createElement('div');
+  grid.className = 'practice-deck-grid';
   practiceDecks.forEach((deck) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'practice-deck-btn' + (deck.id === activeDeckId ? ' active' : '');
-    btn.dataset.deckId = deck.id;
-    btn.textContent = deck.icon + ' ' + lt(deck.name);
-    btn.disabled = deck.id === activeDeckId;
-    btn.onclick = () => startPracticeRound(deck.id);
-    strip.appendChild(btn);
+    const best = prefs.sessionBestByDeck?.[deck.id];
+    const last = prefs.lastSessionResultByDeck?.[deck.id];
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'practice-deck-card' + (deck.id === activeDeckId ? ' active' : '');
+    card.dataset.deckId = deck.id;
+    card.innerHTML =
+      '<span class="practice-deck-card-icon">' + deck.icon + '</span>' +
+      '<span class="practice-deck-card-main">' +
+        '<strong>' + lt(deck.name) + '</strong>' +
+        '<span>' + lt(deck.desc) + '</span>' +
+      '</span>' +
+      '<span class="practice-deck-card-meta">' +
+        (best ? t('practice_card_best', formatElapsed(best.elapsedMs)) : t('practice_card_new')) +
+        (last ? ' · ' + t('practice_card_last_coins', last.points || 0) : '') +
+      '</span>' +
+      '<span class="practice-deck-card-cta">' + t('practice_start_session', PRACTICE_SESSION_SIZE) + '</span>';
+    card.onclick = () => startPracticeSession(deck.id);
+    grid.appendChild(card);
   });
+  lobby.appendChild(grid);
 }
 
 function renderPractice() {
-  if (gameState.mode !== 'practice' || !practiceState.question) return;
+  if (gameState.mode !== 'practice') return;
+  if (practiceState.mode === 'lobby' || !practiceState.question) {
+    showPracticeLobby();
+    return;
+  }
   const deck = practiceState.question.deck || practiceDecks[0];
   const prefs = getPracticePrefs();
-  const best = prefs.bestByDeck[deck.id];
-  const last = prefs.lastResultByDeck[deck.id];
+  const best = prefs.sessionBestByDeck[deck.id];
+  const last = prefs.lastSessionResultByDeck[deck.id];
 
-  renderPracticeDeckStrip(deck.id);
+  if ($('practiceLobby')) $('practiceLobby').style.display = 'none';
+  if ($('practiceDeckStrip')) {
+    $('practiceDeckStrip').style.display = '';
+    $('practiceDeckStrip').textContent = t(
+      'practice_session_rule',
+      practiceState.completedQuestions,
+      practiceState.totalQuestions,
+      practiceState.pendingCoins,
+    );
+  }
+  if ($('practiceCard')) $('practiceCard').style.display = '';
   $('practiceTitle').textContent = deck.icon + ' ' + lt(deck.name);
   $('practiceSubtitle').textContent = lt(deck.desc);
   $('practiceExpression').textContent = lt(practiceState.question.expression);
-  $('practicePoints').textContent = t('practice_points', practiceState.question.points || 10);
+  $('practicePoints').textContent = t(
+    'practice_points',
+    practiceState.question.points || 10,
+    practiceState.questionIndex,
+    practiceState.totalQuestions,
+  );
   $('practiceHintText').textContent = lt(practiceState.question.hint);
   $('practiceBestTime').textContent = best ? formatElapsed(best.elapsedMs) : t('practice_none');
   $('practiceLastRating').textContent = last ? lt(last.title) : t('practice_none');
   $('practiceAnswer').placeholder = t('practice_answer_placeholder');
   updatePracticeTimerPill();
+  updatePracticeCoinPill();
 
   const feedbackBox = $('practiceFeedback');
   const feedbackBadge = $('practiceFeedbackBadge');
   const feedbackText = $('practiceFeedbackText');
   const strategy = $('practiceStrategy');
   const feedback = practiceState.feedback;
+  const isComplete = practiceState.mode === 'complete';
 
   $('practiceAnswer').disabled = !!feedback?.correct;
   $('practiceSubmit').disabled = !!feedback?.correct;
+  $('practiceNext').style.display = feedback?.correct ? '' : 'none';
+  $('practiceNext').textContent = isComplete ? t('practice_back_to_lobby') : t('practice_next_problem');
 
   if (!feedback) {
     feedbackBox.style.display = 'none';
@@ -658,7 +895,14 @@ function renderPractice() {
   if (feedback.correct) {
     feedbackBox.classList.remove('bad');
     feedbackBadge.textContent = lt(feedback.title);
-    feedbackText.textContent = t('practice_time_used', formatElapsed(feedback.elapsedMs)) + ' · ' + lt(feedback.comment) + ' · ' + t('practice_points_earned', feedback.points || 0) + (feedback.isBest ? ' ' + t('practice_new_best') : '');
+    feedbackText.textContent = isComplete
+      ? t(
+        'practice_session_complete_text',
+        formatElapsed(feedback.elapsedMs),
+        feedback.points || 0,
+        getPracticePrefs().totalCoins || 0,
+      ) + (feedback.isBest ? ' ' + t('practice_new_best') : '')
+      : t('practice_question_bank_pending', feedback.points || 0, practiceState.pendingCoins);
     strategy.style.display = '';
     strategy.textContent = t('practice_strategy_label') + '：' + lt(practiceState.question.strategy);
   } else {
@@ -675,20 +919,33 @@ function renderPractice() {
   }
 }
 
-function startPracticeRound(deckId = 'smart-calc') {
+function startPracticeSession(deckId = 'smart-calc') {
+  clearPracticeRewardAnimations();
   practiceState.deckId = deckId;
-  practiceState.question = createPracticeQuestion(deckId);
+  practiceState.mode = 'session';
+  practiceState.totalQuestions = PRACTICE_SESSION_SIZE;
+  practiceState.questionIndex = 1;
+  practiceState.completedQuestions = 0;
+  practiceState.pendingCoins = 0;
+  practiceState.sessionResult = null;
+  practiceState.sessionQuestionKeys = [];
   practiceState.feedback = null;
   practiceState.startedAt = Date.now();
+  practiceState.question = createSessionPracticeQuestion(deckId);
   updateState('practice.currentDeckId', deckId);
   stopPracticeTimer();
   practiceState.timerId = setInterval(updatePracticeTimerPill, 250);
+  preparePracticeInput();
+  renderPractice();
+}
+
+function preparePracticeInput() {
   if ($('practiceAnswer')) {
     $('practiceAnswer').value = '';
     $('practiceAnswer').disabled = false;
   }
   if ($('practiceSubmit')) $('practiceSubmit').disabled = false;
-  renderPractice();
+  if ($('practiceNext')) $('practiceNext').style.display = 'none';
 }
 
 function showPractice(deckId = getPracticePrefs().currentDeckId || 'smart-calc') {
@@ -701,18 +958,50 @@ function showPractice(deckId = getPracticePrefs().currentDeckId || 'smart-calc')
   if ($('homeView')) $('homeView').style.display = 'none';
   if ($('appView')) $('appView').style.display = 'none';
   if ($('practiceView')) $('practiceView').style.display = '';
-  startPracticeRound(deckId);
+  practiceState.deckId = deckId;
+  showPracticeLobby();
+}
+
+function advancePracticeQuestion() {
+  if (practiceState.mode === 'complete') {
+    showPracticeLobby();
+    return;
+  }
+  if (!practiceState.feedback?.correct) return;
+  clearPracticeRewardAnimations();
+  practiceState.questionIndex += 1;
+  practiceState.question = createSessionPracticeQuestion(practiceState.deckId);
+  practiceState.feedback = null;
+  preparePracticeInput();
+  renderPractice();
 }
 
 function submitPracticeAnswer() {
-  if (!practiceState.question || practiceState.feedback?.correct) return;
+  if (practiceState.mode !== 'session' || !practiceState.question || practiceState.feedback?.correct) return;
   const result = evaluatePracticeResult(practiceState.question, $('practiceAnswer').value, practiceElapsedMs());
   if (result.correct) {
-    stopPracticeTimer();
-    result.isBest = savePracticeResult(practiceState.deckId, result);
+    practiceState.completedQuestions += 1;
+    practiceState.pendingCoins += result.points || 0;
+    if (practiceState.completedQuestions >= practiceState.totalQuestions) {
+      stopPracticeTimer();
+      const sessionResult = makePracticeSessionResult(practiceElapsedMs(), practiceState.pendingCoins);
+      sessionResult.isBest = savePracticeResult(practiceState.deckId, sessionResult, practiceState.pendingCoins);
+      practiceState.mode = 'complete';
+      practiceState.feedback = sessionResult;
+      renderPractice();
+      $('practiceNext')?.focus({ preventScroll: true });
+      showPracticeCompletionAnimation(sessionResult.points || 0);
+      return;
+    }
   }
   practiceState.feedback = result;
   renderPractice();
+  if (result.correct) {
+    $('practiceNext')?.focus({ preventScroll: true });
+    showPracticeCorrectAnimation(result.points || 0);
+  } else {
+    $('practiceFeedback')?.focus({ preventScroll: true });
+  }
 }
 
 function getTheme() {
@@ -2676,7 +2965,7 @@ export function init() {
 
   const practiceNext = $('practiceNext');
   if (practiceNext) {
-    practiceNext.addEventListener('click', () => startPracticeRound(practiceState.deckId));
+    practiceNext.addEventListener('click', advancePracticeQuestion);
   }
 
   const practiceAnswer = $('practiceAnswer');

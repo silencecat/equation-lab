@@ -34,6 +34,10 @@ describe('state.js', () => {
       expect(s.learning.seenOnboarding).toBe(false);
       expect(s.practice.currentDeckId).toBe('smart-calc');
       expect(s.practice.bestByDeck).toEqual({});
+      expect(s.practice.sessionBestByDeck).toEqual({});
+      expect(s.practice.lastSessionResultByDeck).toEqual({});
+      expect(s.practice.totalCoins).toBe(0);
+      expect(s.practice.completedSessions).toBe(0);
     });
 
     it('loadState 后 localStorage 已写入 eqlab_state_v1', async () => {
@@ -140,6 +144,30 @@ describe('state.js', () => {
       const { loadState } = await freshModule();
       const s = loadState();
       expect(s.progress.clearedLevelIds).toEqual(['ch1-1', 'ch3-2']);
+    });
+
+    it('旧单题练习成绩不会混入整局最佳成绩', async () => {
+      store['eqlab_state_v1'] = JSON.stringify({
+        version: 1,
+        profile: { locale: 'zh' },
+        progress: { clearedLevelIds: [] },
+        learning: { seenOnboarding: true, lastPlayedAt: null },
+        practice: {
+          currentDeckId: 'smart-calc',
+          bestByDeck: {
+            'smart-calc': { elapsedMs: 3200, points: 10 },
+          },
+          lastResultByDeck: {
+            'smart-calc': { elapsedMs: 4200, points: 10 },
+          },
+        },
+        meta: { schemaVersion: 1 },
+      });
+      const { loadState } = await freshModule();
+      const s = loadState();
+      expect(s.practice.bestByDeck['smart-calc'].elapsedMs).toBe(3200);
+      expect(s.practice.sessionBestByDeck).toEqual({});
+      expect(s.practice.lastSessionResultByDeck).toEqual({});
     });
   });
 });
