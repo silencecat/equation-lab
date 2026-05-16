@@ -2,7 +2,7 @@
 
 [中文](./README.zh.md) | [日本語](./README.ja.md)
 
-Equation Lab is a browser-based learning playground for upper-elementary students to build intuition for equations by dragging, regrouping, and balancing terms.
+Equation Lab is a browser-based learning playground for upper-elementary students to build equation intuition by dragging, regrouping, balancing, and explaining terms.
 
 Live demo:
 [GitHub Pages](https://silencecat.github.io/equation-lab/)
@@ -14,10 +14,12 @@ The preview shows four core interactions: dragging a term across the equals sign
 
 ## What It Is
 
-Equation Lab has two parallel learning modes:
+Equation Lab now has four clearly separated areas:
 
-- `Quest Track`: guided levels that introduce one algebra idea at a time
-- `Playground`: free experimentation with custom equations, random problems, and multiple solution paths
+- `Learning Map`: a game-like journey view that groups levels by learning goal
+- `Equation Quest`: guided levels for balance, inverse operations, fractions, brackets, and story problems
+- `Practice Zone`: focused calculation decks such as multiplicative structure, missing-number inverses, order of operations, unit conversion, averages, regrouping, factor spotting, common factors/multiples, and multiply/divide pairing
+- `Playground`: free experimentation with custom equations and multiple solution paths
 
 The project is designed for children first, but it is also open to parents, teachers, and developers who want to improve the curriculum, wording, and interaction design.
 
@@ -27,6 +29,8 @@ The project is designed for children first, but it is also open to parents, teac
 - Show sign changes as a result of equivalent operations
 - Apply `+`, `-`, `×`, and `÷` tools to both sides
 - Support integers, simple fractions, grouped expressions, and story problems
+- Use short "read before you move" gates to slow down blind symbol shuffling
+- Provide a separate smart-calculation practice area without turning the main quest into a generic worksheet site
 - Offer multilingual UI and curriculum text in Chinese, Japanese, and English
 - Run as a static website
 - Export a single-file offline version for families who just want to double-click and use it
@@ -40,9 +44,10 @@ You can use Equation Lab in two simple ways:
 
 What children can do:
 
-- Learn through guided levels
+- Follow the learning map step by step
+- Practice mental calculation patterns through focused decks in a separate zone
 - Try their own equations in Playground mode
-- Explore different solution paths instead of memorizing one trick
+- Compare different solution paths instead of memorizing one trick
 
 ## For Developers
 
@@ -76,6 +81,7 @@ We especially welcome help with:
 
 - curriculum clarity
 - story problem writing
+- calculation practice ideas that still connect to mathematical structure
 - child-friendly wording
 - multilingual polishing
 - interaction testing on real devices
@@ -89,4 +95,4 @@ If you are a parent and do not want to edit code, you can still help by opening 
 
 ## Project Goal
 
-This project is not just a worksheet site. The goal is to help children understand that equations stay true when both sides change together.
+This project is not just a worksheet site. The goal is to help children understand that equations stay true when both sides change together, and that calculation shortcuts come from structure rather than magic tricks.

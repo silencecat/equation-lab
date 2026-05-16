@@ -6,7 +6,11 @@ test('practice area generates and scores a smart-calc problem', async ({ page })
 
   await page.locator('#homePractice').click();
   await expect(page.locator('#practiceView')).toBeVisible();
+  await expect(page.locator('.practice-deck-btn')).toHaveCount(10);
+  await page.locator('[data-deck-id="multiplicative-structure"]').click();
+  await expect(page.locator('[data-deck-id="multiplicative-structure"]')).toHaveClass(/active/);
   await expect(page.locator('#practiceExpression')).not.toHaveText('');
+  await expect(page.locator('#practicePoints')).toContainText('硬币');
 
   const answer = await page.evaluate(() => window.__testCurrentPractice?.()?.answer);
   await page.locator('#practiceAnswer').fill(String(answer));

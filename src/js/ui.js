@@ -500,16 +500,20 @@ function renderHome() {
   if (!container) return;
   container.innerHTML = '';
   const cleared = getClearedSet();
+  const practiceBadge = $('homePracticeBadge');
+  if (practiceBadge) practiceBadge.textContent = t('home_practice_badge', practiceDecks.length);
 
-  journeys.forEach(j => {
+  journeys.forEach((j, idx) => {
     const range = journeyLevelRange(j.id);
     const total = range.length;
     const done = range.filter(i => cleared.has(allLevels[i].id)).length;
     const pct = total ? Math.round((done / total) * 100) : 0;
     const allDone = done === total && total > 0;
+    const actionText = allDone ? t('journey_complete') : (done > 0 ? t('continue_journey') : t('start_journey'));
 
     const card = document.createElement('div');
-    card.className = 'journey-card' + (allDone ? ' completed' : '');
+    card.className = 'journey-card' + (j.id === 'challenge' ? ' challenge' : '') + (allDone ? ' completed' : '');
+    card.dataset.step = j.id === 'challenge' ? '★' : String(idx + 1);
     card.style.setProperty('--jc-accent', j.color);
     card.style.setProperty('--jc-bg', `linear-gradient(135deg, ${j.color}12, ${j.color}08)`);
     card.style.setProperty('--jc-border', `${j.color}44`);
@@ -524,7 +528,10 @@ function renderHome() {
         '</div>' +
         '<span class="journey-badge">' + t('journey_prog', done, total) + '</span>' +
       '</div>' +
-      '<div class="journey-bar"><div class="journey-bar-fill" style="width:' + pct + '%"></div></div>';
+      '<div class="journey-bar"><div class="journey-bar-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="journey-card-bottom">' +
+        '<span class="journey-action">' + actionText + '</span>' +
+      '</div>';
     card.onclick = () => enterJourney(j.id);
     container.appendChild(card);
   });
@@ -568,6 +575,7 @@ function savePracticeResult(deckId, result) {
     title: result.title,
     comment: result.comment,
     elapsedMs: result.elapsedMs,
+    points: result.points || 0,
     at: Date.now(),
   };
   updateState('practice.lastResultByDeck', {
@@ -587,6 +595,28 @@ function savePracticeResult(deckId, result) {
   return false;
 }
 
+function renderPracticeDeckStrip(activeDeckId) {
+  const strip = $('practiceDeckStrip');
+  if (!strip) return;
+  strip.innerHTML = '';
+
+  const label = document.createElement('span');
+  label.className = 'practice-deck-label';
+  label.textContent = t('practice_deck_label');
+  strip.appendChild(label);
+
+  practiceDecks.forEach((deck) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'practice-deck-btn' + (deck.id === activeDeckId ? ' active' : '');
+    btn.dataset.deckId = deck.id;
+    btn.textContent = deck.icon + ' ' + lt(deck.name);
+    btn.disabled = deck.id === activeDeckId;
+    btn.onclick = () => startPracticeRound(deck.id);
+    strip.appendChild(btn);
+  });
+}
+
 function renderPractice() {
   if (gameState.mode !== 'practice' || !practiceState.question) return;
   const deck = practiceState.question.deck || practiceDecks[0];
@@ -594,9 +624,11 @@ function renderPractice() {
   const best = prefs.bestByDeck[deck.id];
   const last = prefs.lastResultByDeck[deck.id];
 
+  renderPracticeDeckStrip(deck.id);
   $('practiceTitle').textContent = deck.icon + ' ' + lt(deck.name);
   $('practiceSubtitle').textContent = lt(deck.desc);
-  $('practiceExpression').textContent = practiceState.question.expression;
+  $('practiceExpression').textContent = lt(practiceState.question.expression);
+  $('practicePoints').textContent = t('practice_points', practiceState.question.points || 10);
   $('practiceHintText').textContent = lt(practiceState.question.hint);
   $('practiceBestTime').textContent = best ? formatElapsed(best.elapsedMs) : t('practice_none');
   $('practiceLastRating').textContent = last ? lt(last.title) : t('practice_none');
@@ -626,7 +658,7 @@ function renderPractice() {
   if (feedback.correct) {
     feedbackBox.classList.remove('bad');
     feedbackBadge.textContent = lt(feedback.title);
-    feedbackText.textContent = t('practice_time_used', formatElapsed(feedback.elapsedMs)) + ' · ' + lt(feedback.comment) + (feedback.isBest ? ' ' + t('practice_new_best') : '');
+    feedbackText.textContent = t('practice_time_used', formatElapsed(feedback.elapsedMs)) + ' · ' + lt(feedback.comment) + ' · ' + t('practice_points_earned', feedback.points || 0) + (feedback.isBest ? ' ' + t('practice_new_best') : '');
     strategy.style.display = '';
     strategy.textContent = t('practice_strategy_label') + '：' + lt(practiceState.question.strategy);
   } else {
@@ -2542,6 +2574,7 @@ export function init() {
 
   /* ── 语言切换（游戏内抽屉 + 首页） ── */
   applyStaticI18n();
+  renderHome();
 
   const langHandler = (btn) => {
     setLocale(btn.dataset.lang);
