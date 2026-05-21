@@ -124,7 +124,7 @@ export const chapters = [
         title: { zh: '1-1 糖果在哪里', ja: '1-1 キャンディはどこ？', en: '1-1 Where Are the Candies?' },
         story: {
           zh: '小明口袋里有一些糖果。妈妈又给了他 2 颗，数一数发现一共有 5 颗。小明原来有几颗糖果？',
-          ja: 'たけしくんのポケットにキャンディが何個か入っています。お母さんがさらに 2 個くれて、数えたら全部で 5 個でした。最初は何個あった？',
+          ja: 'たけしくんのポケットには、キャンディが何個かあります。お母さんが 2 個くれました。ぜんぶで 5 個です。はじめは何個？',
           en: 'Alex has some candies in his pocket. Mom gives him 2 more, and he counts 5 in total. How many did he start with?',
         },
         gate: {
@@ -205,14 +205,14 @@ export const chapters = [
         title: { zh: '1-4 弹珠列式', ja: '1-4 ビー玉で式を作ろう', en: '1-4 Marble Equation' },
         story: {
           zh: '小明有一些弹珠，又赢了 2 颗，现在一共有 7 颗。请列出方程。',
-          ja: 'たけしくんはビー玉を何個か持っています。さらに 2 個勝ち取って、今は全部で 7 個。方程式を作ろう。',
+          ja: 'たけしくんはビー玉を何個か持っています。さらに 2 個もらいました。今は 7 個です。式を作ろう。',
           en: 'Alex has some marbles. He wins 2 more and now has 7. Build the equation.',
         },
         sub:  { zh: '把卡片拖到正确的一边', ja: 'カードを正しい側にドラッグしよう', en: 'Drag cards to the correct side' },
         goal: { zh: '列出等式：左边 = 右边', ja: '等式を作ろう：左辺 = 右辺', en: 'Build the equation: left = right' },
         tray: [
           { s: 'x', c: { n: 1, d: 1 }, label: { zh: '原有的弹珠', ja: 'もとのビー玉', en: 'original marbles' } },
-          { s: 'n', c: { n: 2, d: 1 }, label: { zh: '赢来的', ja: '勝ち取った分', en: 'won' } },
+          { s: 'n', c: { n: 2, d: 1 }, label: { zh: '赢来的', ja: 'もらった分', en: 'won' } },
           { s: 'n', c: { n: 7, d: 1 }, label: { zh: '一共', ja: '合計', en: 'total' } },
         ],
         eq: {
@@ -227,7 +227,7 @@ export const chapters = [
         title: { zh: '1-5 送花列式', ja: '1-5 花を贈ろう', en: '1-5 Flower Equation' },
         story: {
           zh: '花瓶里有一些花，送出 2 朵后还剩 3 朵。请列出方程。',
-          ja: '花瓶に花が何本かあります。2 本あげたら残り 3 本。方程式を作ろう。',
+          ja: '花瓶に花が何本かあります。2 本あげたら残り 3 本。式を作ろう。',
           en: 'A vase has some flowers. After giving away 2, there are 3 left. Build the equation.',
         },
         sub:  { zh: '"送出"用什么符号表示？', ja: '「あげた」はどの記号？', en: 'What sign means "giving away"?' },
@@ -263,7 +263,7 @@ export const chapters = [
         title: { zh: '2-1 攒零花钱', ja: '2-1 おこづかい貯金', en: '2-1 Saving Pocket Money' },
         story: {
           zh: '小明攒了一些钱，周一得了 2 元零花钱，周二又得了 1 元。他现在和有 8 元的小红一样多。小明原来攒了多少钱？',
-          ja: 'たけしくんはいくらか貯めていて、月曜に 2 円、火曜にさらに 1 円もらいました。8 円持っている花子さんと同じです。最初にいくら貯めていた？',
+          ja: 'たけしくんのお金は、はじめは何円かわかりません。月曜に 2 円、火曜に 1 円もらいました。今は 8 円です。はじめは何円？',
           en: 'Alex saved some money. He got 2 yuan on Monday and 1 more on Tuesday. Now he has the same as Beth\'s 8 yuan. How much did he save?',
         },
         sub:  { zh: '先把周一和周二多出来的钱分别请走', ja: '月曜と火曜にもらった分を、それぞれ先にどかそう', en: 'First clear away the extra money from Monday and Tuesday, one piece at a time' },
@@ -284,7 +284,7 @@ export const chapters = [
         title: { zh: '2-2 多余的积木', ja: '2-2 ブロックの数合わせ', en: '2-2 Extra Blocks' },
         story: {
           zh: '小明有一些积木，又拿到了 3 块。小红有 4 块和 6 块积木。两人一样多，小明原来有几块？',
-          ja: 'たけしくんはブロックを何個か持っていて、さらに 3 個もらいました。花子さんは 4 個と 6 個。二人は同じ数。たけしくんは最初に何個持っていた？',
+          ja: 'たけしくんはブロックを何個か持っています。あとで 3 個もらいました。花子さんは 4 個と 6 個で、同じ数です。はじめは何個？',
           en: 'Alex has some blocks and gets 3 more. Beth has 4 and 6 blocks. They have the same total. How many did Alex start with?',
         },
         sub:  { zh: '右边同侧的数字会自动合并', ja: '同じ側の数字は自動でまとまるよ', en: 'Numbers on the same side combine automatically' },
@@ -304,7 +304,7 @@ export const chapters = [
         title: { zh: '2-3 看图书', ja: '2-3 図書館', en: '2-3 Library Visit' },
         story: {
           zh: '小明有一些图书，借出 2 本后又买了 5 本，和小红的 7 本一样多。小明原来有几本？',
-          ja: 'たけしくんは本を何冊か持っていて、2 冊貸した後さらに 5 冊買ったら、花子さんの 7 冊と同じです。最初は何冊持っていた？',
+          ja: 'たけしくんは本を何冊か持っています。2 冊かして、そのあと 5 冊買いました。今は 7 冊です。はじめは何冊？',
           en: 'Alex has some books. After lending 2 and buying 5, he has the same as Beth\'s 7. How many did he start with?',
         },
         sub:  { zh: '先分清“借出”是减少，“买了”是增加，再分别处理', ja: '「貸した」は減る、「買った」は増える。まずそこを分けて考えよう', en: 'First separate “lent out” as a decrease and “bought” as an increase, then handle them one by one' },
@@ -325,7 +325,7 @@ export const chapters = [
         title: { zh: '2-4 买文具', ja: '2-4 文房具を買おう', en: '2-4 Buying Stationery' },
         story: {
           zh: '小明有一些笔，获得 4 支奖品笔后送出 1 支，和小红的 6 支一样多。小明原来有几支？',
-          ja: 'たけしくんは鉛筆を何本か持っています。賞品で 4 本もらい 1 本あげたら、花子さんの 6 本と同じ。最初は何本持っていた？',
+          ja: 'たけしくんはえんぴつを何本か持っています。4 本もらい、1 本あげました。今は 6 本です。はじめは何本？',
           en: 'Alex has some pens. After winning 4 prizes and giving 1 away, he has the same as Beth\'s 6. How many did he start with?',
         },
         sub:  { zh: '先分清“获得”是增加，“送出”是减少，再把它们请走', ja: '「もらった」は増える、「あげた」は減る。分けてからどかそう', en: 'Treat “won” as an increase and “gave away” as a decrease, then clear them in turn' },
@@ -347,7 +347,7 @@ export const chapters = [
         title: { zh: '2-5 甜甜圈列式', ja: '2-5 ドーナツの式', en: '2-5 Donut Equation' },
         story: {
           zh: '盒子里有一些甜甜圈，早上放入 3 个，中午又放入 1 个，现在一共 9 个。请列出方程。',
-          ja: '箱にドーナツが何個か入っています。朝 3 個、昼にまた 1 個入れたら合計 9 個。方程式を作ろう。',
+          ja: '箱にドーナツが何個か入っています。朝 3 個、昼にまた 1 個入れたら合計 9 個。式を作ろう。',
           en: 'A box has some donuts. 3 added in the morning and 1 at noon, making 9 total. Build the equation.',
         },
         sub:  { zh: '三张卡放同一边', ja: '3 枚のカードを同じ側に', en: 'Put all 3 cards on one side' },
@@ -370,7 +370,7 @@ export const chapters = [
         title: { zh: '2-6 红包列式', ja: '2-6 お年玉の式', en: '2-6 Red Envelope Equation' },
         story: {
           zh: '小明有一些钱，收到 2 元红包后花掉 1 元买零食，和 8 元一样多。请列出方程。',
-          ja: 'たけしくんはいくらかお金を持っています。お年玉 2 円をもらい、おやつに 1 円使ったら 8 円と同じ。方程式を作ろう。',
+          ja: 'たけしくんはお金を何円か持っています。2 円もらい、1 円使いました。今は 8 円です。式を作ろう。',
           en: 'Alex has some money. After getting 2 yuan and spending 1 on snacks, he has 8 yuan. Build the equation.',
         },
         sub:  { zh: '有正有负，注意区分', ja: 'プラスとマイナスに注意', en: 'Watch for positive and negative signs' },
@@ -471,7 +471,7 @@ export const chapters = [
         title: { zh: '3-4 买苹果列式', ja: '3-4 りんごの式', en: '3-4 Apple Equation' },
         story: {
           zh: '两袋一样多的苹果，一共 8 个。每袋几个？请列出方程。',
-          ja: '同じ数のりんごが 2 袋、合計 8 個。1 袋何個？方程式を作ろう。',
+          ja: '同じ数のりんごが 2 袋、合計 8 個。1 袋何個？式を作ろう。',
           en: 'Two bags of apples, 8 in total. How many per bag? Build the equation.',
         },
         sub:  { zh: '2 袋苹果怎么用一张卡表示？', ja: '2 袋のりんごを 1 枚のカードで？', en: 'How do you show 2 bags with one card?' },
@@ -492,7 +492,7 @@ export const chapters = [
         title: { zh: '3-5 运动会列式', ja: '3-5 運動会の式', en: '3-5 Sports Day Equation' },
         story: {
           zh: '运动会接力赛跑了 3 轮，每轮得分相同，加上 2 分团体加分，总共 14 分。请列出方程。',
-          ja: '運動会のリレーを 3 回走り、毎回同じ点数。ボーナス 2 点を足して合計 14 点。方程式を作ろう。',
+          ja: 'リレーを 3 回走りました。毎回同じ点数です。ボーナス 2 点を足すと、ぜんぶで 14 点。式を作ろう。',
           en: '3 relay rounds with equal scores, plus a 2-point team bonus, totaling 14. Build the equation.',
         },
         sub:  { zh: '系数和常数要分开放', ja: '係数と定数は別々に置こう', en: 'Keep coefficients and constants separate' },
@@ -610,7 +610,7 @@ export const chapters = [
         title: { zh: '4-5 半价优惠列式', ja: '4-5 半額セールの式', en: '4-5 Half-Price Sale Equation' },
         story: {
           zh: '半价优惠买一件玩具，再加 2 元运费，一共 5 元。这件玩具原价多少？请列出方程。',
-          ja: '半額セールでおもちゃを買い、送料 2 円を足して合計 5 円。元の値段はいくら？方程式を作ろう。',
+          ja: '半額セールでおもちゃを買い、送料 2 円を足して合計 5 円。元の値段はいくら？式を作ろう。',
           en: 'A toy at half price plus 2 yuan shipping costs 5 yuan. What\'s the full price? Build the equation.',
         },
         sub:  { zh: '半价怎么表示？', ja: '半額はどう表す？', en: 'How do you show half price?' },
@@ -637,7 +637,7 @@ export const chapters = [
     name: { zh: '第五章：把故事写成等式 — 建模练习', ja: '第5章：お話を等式に — モデリング練習', en: 'Chapter 5: Stories into Equations — Modeling Practice' },
     desc: {
       zh: '读完应用题，把卡片拖到等式的正确位置，拼出方程！',
-      ja: 'お話を読んで、カードを等式の正しい場所にドラッグして、方程式を作ろう！',
+      ja: 'お話を読んで、カードを等式の正しい場所にドラッグして、式を作ろう！',
       en: 'Read the problem, drag cards to the right spots, and build the equation!',
     },
     levels: [
@@ -647,7 +647,7 @@ export const chapters = [
         title: { zh: '5-1 数糖果', ja: '5-1 キャンディを数えよう', en: '5-1 Counting Candies' },
         story: {
           zh: '小明口袋里有一些糖果。妈妈又给了他 2 颗，数了数一共 5 颗。请列出方程。',
-          ja: 'たけしくんのポケットにキャンディが何個か入っています。お母さんが 2 個くれて、全部で 5 個。方程式を作ろう。',
+          ja: 'たけしくんのポケットには、キャンディが何個かあります。お母さんが 2 個くれました。ぜんぶで 5 個。式を作ろう。',
           en: 'Alex has some candies. Mom gives him 2 more, making 5 total. Build the equation.',
         },
         sub:  { zh: '把卡片拖到正确的一边', ja: 'カードを正しい側にドラッグしよう', en: 'Drag cards to the correct side' },
@@ -669,7 +669,7 @@ export const chapters = [
         title: { zh: '5-2 借书', ja: '5-2 本を借りる', en: '5-2 Borrowing Books' },
         story: {
           zh: '书架上有一些书。小红借走了 3 本后，还剩 7 本。请列出方程。',
-          ja: '本棚に本が何冊かあります。花子さんが 3 冊借りたら 7 冊残りました。方程式を作ろう。',
+          ja: '本棚に本が何冊かあります。花子さんが 3 冊借りたら 7 冊残りました。式を作ろう。',
           en: 'There are some books on the shelf. After Beth borrows 3, there are 7 left. Build the equation.',
         },
         sub:  { zh: '"借走"用什么符号表示？', ja: '「借りた」はどの記号？', en: 'What sign means "borrowing"?' },
@@ -691,7 +691,7 @@ export const chapters = [
         title: { zh: '5-3 攒零花钱', ja: '5-3 おこづかい貯金', en: '5-3 Saving Pocket Money' },
         story: {
           zh: '小明攒了一些钱，周一得了 2 元零花钱，周二又得了 1 元。他现在和有 8 元的小红一样多。请列出方程。',
-          ja: 'たけしくんはいくらか貯めていて、月曜に 2 円、火曜にさらに 1 円もらいました。花子さんの 8 円と同じです。方程式を作ろう。',
+          ja: 'たけしくんのお金は、はじめは何円かわかりません。月曜に 2 円、火曜に 1 円もらいました。今は 8 円です。式を作ろう。',
           en: 'Alex saved some money. He got 2 yuan on Monday and 1 on Tuesday. Now he has the same as Beth\'s 8 yuan. Build the equation.',
         },
         sub:  { zh: '三张卡放同一边', ja: '3 枚のカードを同じ側に', en: 'Put all 3 cards on one side' },
@@ -714,7 +714,7 @@ export const chapters = [
         title: { zh: '5-4 买铅笔', ja: '5-4 えんぴつを買おう', en: '5-4 Buying Pencils' },
         story: {
           zh: '妈妈给小明和弟弟各买了一支同样的铅笔，2 支一共花了 6 元。请列出方程。',
-          ja: 'お母さんがたけしくんと弟に同じ鉛筆を 1 本ずつ買いました。2 本で合計 6 円。方程式を作ろう。',
+          ja: 'お母さんがたけしくんと弟に同じ鉛筆を 1 本ずつ買いました。2 本で合計 6 円。式を作ろう。',
           en: 'Mom bought the same pencil for Alex and his brother. 2 pencils cost 6 yuan. Build the equation.',
         },
         sub:  { zh: '2 支铅笔怎么用一张卡表示？', ja: '2 本の鉛筆を 1 枚のカードで？', en: 'How do you show 2 pencils with one card?' },
@@ -735,7 +735,7 @@ export const chapters = [
         title: { zh: '5-5 运动会得分', ja: '5-5 運動会の得点', en: '5-5 Sports Day Score' },
         story: {
           zh: '运动会接力赛跑了 3 轮，每轮得分相同。加上开幕式 2 分团体加分，总共 11 分。请列出方程。',
-          ja: '運動会のリレーを 3 回走り、毎回同じ点数。開会式のボーナス 2 点を足して、合計 11 点。方程式を作ろう。',
+          ja: 'リレーを 3 回走りました。毎回同じ点数です。ボーナス 2 点を足すと、ぜんぶで 11 点。式を作ろう。',
           en: '3 relay rounds with equal scores. Plus a 2-point opening bonus, totaling 11. Build the equation.',
         },
         sub:  { zh: '系数和常数要分开放', ja: '係数と定数は別々に置こう', en: 'Keep coefficients and constants separate' },
@@ -757,7 +757,7 @@ export const chapters = [
         title: { zh: '5-6 三瓶饮料', ja: '5-6 ジュース3本', en: '5-6 Three Bottles' },
         story: {
           zh: '三瓶同价饮料再加 3 元打包费，一共 15 元。请列出方程。',
-          ja: '同じ値段のジュース 3 本に包装代 3 円を足して、合計 15 円。方程式を作ろう。',
+          ja: '同じ値段のジュース 3 本に包装代 3 円を足して、合計 15 円。式を作ろう。',
           en: 'Three same-priced drinks plus 3 yuan packing fee, 15 yuan total. Build the equation.',
         },
         sub:  { zh: '完整走完建模链路', ja: '最後までモデリングしよう', en: 'Complete the whole modeling process' },
@@ -779,14 +779,14 @@ export const chapters = [
         title: { zh: '5-7 谁的弹珠多', ja: '5-7 ビー玉はいくつ？', en: '5-7 Whose Marbles?' },
         story: {
           zh: '小明有一些弹珠，又赢了 3 颗，现在一共 8 颗。请列出方程。注意：不是所有卡片都需要哦！',
-          ja: 'たけしくんはビー玉を何個か持っています。さらに 3 個勝ち取って、今は全部で 8 個。方程式を作ろう。全部のカードを使わなくてもいいよ！',
+          ja: 'たけしくんはビー玉を何個か持っています。さらに 3 個もらいました。今は 8 個です。式を作ろう。使わないカードもあるよ！',
           en: 'Alex has some marbles. He wins 3 more and now has 8. Build the equation. Not every card is needed!',
         },
         sub:  { zh: '有一张卡没有用，仔细想想', ja: '使わないカードが 1 枚あるよ', en: 'One card isn\'t needed — think carefully' },
         goal: { zh: '列出等式：左边 = 右边', ja: '等式を作ろう：左辺 = 右辺', en: 'Build the equation: left = right' },
         tray: [
           { s: 'x', c: { n: 1, d: 1 }, label: { zh: '原有的弹珠', ja: 'もとのビー玉', en: 'original marbles' } },
-          { s: 'n', c: { n: 3, d: 1 }, label: { zh: '赢来的', ja: '勝ち取った分', en: 'won' } },
+          { s: 'n', c: { n: 3, d: 1 }, label: { zh: '赢来的', ja: 'もらった分', en: 'won' } },
           { s: 'n', c: { n: 8, d: 1 }, label: { zh: '现在一共', ja: '今の合計', en: 'current total' } },
           { s: 'n', c: { n: 5, d: 1 }, label: { zh: '（输掉的？）', ja: '（負けた分？）', en: '(lost ones?)' } },
         ],
@@ -802,10 +802,10 @@ export const chapters = [
         title: { zh: '5-8 课外班', ja: '5-8 習い事', en: '5-8 After-School Class' },
         story: {
           zh: '小明每周上 2 次课外班，外加 1 元材料费。小红每周上 1 次同样的课外班，加 4 元交通费。两人费用相同，请列出方程。注意有多余卡片！',
-          ja: 'たけしくんは週 2 回の習い事と材料費 1 円。花子さんは同じ習い事を週 1 回と交通費 4 円。同じ費用の方程式を作ろう。余計なカードに注意！',
+          ja: '習い事 1 回のねだんを △ 円にします。たけしくんは 2 回分と 1 円。花子さんは 1 回分と 4 円。2人の代金は同じです。式を作ろう。使わないカードに注意！',
           en: 'Alex takes 2 classes a week plus 1 yuan for materials. Beth takes 1 class plus 4 yuan for transport. Same cost. Build the equation. Watch for extra cards!',
         },
-        sub:  { zh: '读清楚题目，别被多余卡片骗了', ja: '問題をよく読んで、余計なカードに惑わされないで', en: 'Read carefully — don\'t be fooled by extra cards' },
+        sub:  { zh: '读清楚题目，别被多余卡片骗了', ja: '問題をよく読んで、使わないカードに気をつけよう', en: 'Read carefully — don\'t be fooled by extra cards' },
         goal: { zh: '列出等式：左边 = 右边', ja: '等式を作ろう：左辺 = 右辺', en: 'Build the equation: left = right' },
         tray: [
           { s: 'x', c: { n: 2, d: 1 }, label: { zh: '小明 2 次课', ja: 'たけし2回分', en: 'Alex\'s 2 classes' } },
@@ -882,7 +882,7 @@ export const chapters = [
     name: { zh: '谁是△？— 选择未知量', ja: '△ は誰？— 未知数を選ぼう', en: 'Who Is △? — Choose the Unknown' },
     desc: {
       zh: '列式之前，先想想：题目在问谁？那个就是 △。设对了，方程就又快又稳。',
-      ja: '式を作る前に考えよう：問題は誰を聞いてる？それが △。正しく選べば方程式がスムーズに！',
+      ja: '式を作る前に考えよう：問題は誰を聞いてる？それが △。正しく選べば式が作りやすいよ！',
       en: 'Before building the equation, ask: who is the question about? That\'s △. Choose well and the equation flows!',
     },
     levels: [
@@ -915,7 +915,7 @@ export const chapters = [
         title: { zh: 'C3-2 设谁更顺手', ja: 'C3-2 どっちを △ にする？', en: 'C3-2 Which Is Easier to Set?' },
         story: {
           zh: '小红有一些贴纸。小蓝比小红多 3 张，小蓝一共有 11 张。谁应该是 △ 呢？想一想：哪个量是你真正不知道的？',
-          ja: '花子さんにはシールが何枚かあります。太郎くんは花子さんより 3 枚多くて、全部で 11 枚。△ にするのは誰？本当にわからないのはどっち？',
+          ja: '花子さんのシールは何枚かわかりません。太郎くんはそれより 3 枚多いです。2人で 11 枚。△ にするのは、どちらの数？',
           en: 'Alice has some stickers. Bob has 3 more than Alice — 11 in total. Who should be △? Think: which amount do you truly not know?',
         },
         sub:  { zh: '小红的贴纸是 △，小蓝比她多 3 就是 △ + 3', ja: '花子のシールが △、太郎は 3 枚多いから △ + 3', en: 'Alice\'s stickers = △, Bob has 3 more so that\'s △ + 3' },
@@ -937,7 +937,7 @@ export const chapters = [
         title: { zh: 'C3-3 一个△就够', ja: 'C3-3 △ は一つで十分', en: 'C3-3 One △ Is Enough' },
         story: {
           zh: '弟弟和哥哥一起存钱。弟弟存了一些，哥哥存的是弟弟的 2 倍。两人一共存了 18 元。只要设弟弟为 △，哥哥就是 2△——不用设两个！',
-          ja: '弟と兄がいっしょに貯金。弟がいくらか貯めて、兄は弟の 2 倍。合計 18 円。弟を △ にすれば、兄は 2△——二つも要らない！',
+          ja: '弟のお金は何円かわかりません。兄はその 2 倍です。2人で 18 円。弟を △ にすると、兄は 2△。△ は 1 つで足ります。',
           en: 'Two brothers save money together. The younger saves some; the older saves twice as much. 18 in total. Set the younger as △, the older is 2△ — no need for two unknowns!',
         },
         sub:  { zh: '设一个量为 △，另一个就能用 △ 表达', ja: '一つを △ にすれば、もう一つも △ で表せるよ', en: 'Set one as △, and the other can be expressed using △' },
@@ -999,7 +999,7 @@ export const chapters = [
         title: { zh: '6-2 零食大礼包', ja: '6-2 お菓子パック', en: '6-2 Snack Packs' },
         story: {
           zh: '妈妈买了 2 袋零食大礼包，每袋里有几颗糖和 1 块饼干。另外还多买了 2 颗散装糖，一共 10 件。',
-          ja: 'お母さんがお菓子パックを 2 袋買いました。各袋にキャンディ何個かとクッキー 1 枚。さらにバラのキャンディを 2 個買って、合計 10 個です。',
+          ja: 'お菓子パックが 2 袋あります。1 袋にはキャンディが何個かと、クッキー 1 枚。さらにキャンディ 2 個を足すと、ぜんぶで 10 個です。',
           en: 'Mom bought 2 snack packs, each with some candies and 1 cookie. Plus 2 loose candies, 10 items total.',
         },
         sub:  { zh: '展开括号后再移项', ja: 'カッコを展開してから項を移動しよう', en: 'Expand brackets, then move terms' },
@@ -1048,7 +1048,7 @@ export const chapters = [
         title: { zh: '6-4 文具盒', ja: '6-4 ふでばこ', en: '6-4 Pencil Cases' },
         story: {
           zh: '班上分了 3 个文具盒，每个文具盒有几支铅笔和 1 块橡皮。拿走 1 支铅笔后，一共剩 8 件文具。',
-          ja: 'クラスで 3 つのふでばこをもらいました。各ふでばこに鉛筆何本かと消しゴム 1 個。鉛筆を 1 本取ったら、残りは全部で 8 個です。',
+          ja: 'ふでばこが 3 つあります。1 つにえんぴつが何本かと、消しゴム 1 個。えんぴつを 1 本取ると、のこりはぜんぶで 8 個です。',
           en: 'The class got 3 pencil cases, each with some pencils and 1 eraser. After removing 1 pencil, 8 items remain.',
         },
         sub:  { zh: '展开括号后再移项整理', ja: 'カッコを展開してから項を移動しよう', en: 'Expand brackets, then rearrange' },
@@ -1090,7 +1090,7 @@ export const chapters = [
         title: { zh: '7-1 零花钱比较', ja: '7-1 おこづかい比べ', en: '7-1 Comparing Pocket Money' },
         story: {
           zh: '小红有一些钱，小明的钱是小红的 2 倍。后来妈妈给小明 3 元、给小红 7 元，两人的钱恰好一样多。小红原来有多少钱？',
-          ja: '花子さんはいくらかお金を持っていて、たけしくんは花子さんの 2 倍です。お母さんがたけしくんに 3 円、花子さんに 7 円あげたら、二人はちょうど同じ金額になりました。花子さんはもとは何円持っていた？',
+          ja: '花子さんは何円か持っています。たけしくんはその 2 倍です。あとで、たけしくんは 3 円、花子さんは 7 円もらいました。2人の金額は同じになりました。花子さんははじめ何円？',
           en: 'Beth has some money and Alex has twice as much. Mom gives Alex 3 yuan and Beth 7 yuan — now they\'re equal. How much did Beth start with?',
         },
         sub:  { zh: '把右边的 △ 拖到左边来合并', ja: '右側の △ を左側にドラッグしてまとめよう', en: 'Drag x from the right to combine on the left' },
@@ -1111,7 +1111,7 @@ export const chapters = [
         title: { zh: '7-2 苹果一样多', ja: '7-2 りんごが同じ数', en: '7-2 Equal Apples' },
         story: {
           zh: '小明有一些苹果，另外还有 6 个橘子。小红的苹果是小明的 2 倍，另外有 1 个橘子。两人的水果总数一样多，小明有几个苹果？',
-          ja: 'たけしくんはりんごを何個かと、みかんを 6 個持っています。花子さんのりんごはたけしくんの 2 倍で、みかんは 1 個。二人の果物は合わせて同じ数。たけしくんのりんごは何個？',
+          ja: 'たけしくんのりんごは何個かわかりません。みかんは 6 個あります。花子さんのりんごはその 2 倍で、みかんは 1 個。果物の数は同じです。たけしくんのりんごは何個？',
           en: 'Alex has some apples and 6 oranges. Beth has twice Alex\'s apples and 1 orange. Same total fruit. How many apples does Alex have?',
         },
         sub:  { zh: '右边系数更大也不怕', ja: '右辺の係数が大きくても大丈夫', en: 'Don\'t worry if the right side has a bigger coefficient' },
@@ -1151,7 +1151,7 @@ export const chapters = [
         title: { zh: '7-4 手工花', ja: '7-4 手作りの花', en: '7-4 Paper Flowers' },
         story: {
           zh: '小明做了 2 束手工花，每束里有一些玫瑰和 1 朵菊花。小红做的玫瑰和小明每束一样多，另外又加了 5 朵菊花。两人做的花总数一样多，每束有几朵玫瑰？',
-          ja: 'たけしくんは花束を 2 つ作りました。各束にバラ何本かと菊 1 本。花子さんのバラはたけしくんの 1 束分と同じで、さらに菊を 5 本足しました。二人の花の総数は同じ。1 束のバラは何本？',
+          ja: 'たけしくんは花束を 2 つ作りました。1 束にはバラが何本かと、きくが 1 本あります。花子さんはバラを同じ本数だけ作り、きくを 5 本足しました。花の数は同じです。1 束のバラは何本？',
           en: 'Alex made 2 bouquets, each with some roses and 1 daisy. Beth has the same roses as one bunch, plus 5 daisies. Same total. How many roses per bunch?',
         },
         sub:  { zh: '展开括号 + 两边都有 △', ja: 'カッコ展開 + 両辺に △', en: 'Expand brackets + x on both sides' },
@@ -1177,7 +1177,7 @@ export const chapters = [
         title: { zh: '7-5 教室人数', ja: '7-5 教室の人数', en: '7-5 Classroom Headcount' },
         story: {
           zh: '教室有 3 组学生，每组人数相同，但每组都有 2 人请假。另外还有 4 个值日生。隔壁教室的人数是这边每组满员人数的 2 倍再加 5 人。两间教室实到人数相等，每组满员多少人？',
-          ja: '教室に 3 グループの生徒がいて、各グループ同じ人数ですが、毎グループ 2 人は欠席。さらに日直が 4 人います。隣の教室はこちらの 1 グループの定員の 2 倍に 5 人を足した人数です。両方の教室の実際の人数は同じ。1 グループの定員は何人？',
+          ja: 'こちらの教室には、同じ人数のグループが 3 つあります。各グループから 2 人ずつ休み、日直が 4 人います。となりの教室は、1 グループの人数の 2 倍に 5 人を足した人数です。人数は同じです。1 グループは何人？',
           en: '3 groups of students, same size, 2 absent from each, plus 4 monitors. The next room has twice one full group plus 5. Same attendance. How many per full group?',
         },
         sub:  { zh: '括号 + 移项 + 合并，一步步来', ja: 'カッコ → 移項 → まとめ、一歩ずつ！', en: 'Brackets + move terms + combine — step by step' },
@@ -1289,7 +1289,7 @@ export const chapters = [
         title: { zh: '8-4 逆向列式', ja: '8-4 逆向き式を作ろう', en: '8-4 Reverse Equation' },
         story: {
           zh: '一个数先乘以 3 再加 5，得到 20。请列出方程。',
-          ja: 'ある数にまず 3 をかけて、次に 5 を足したら 20 になりました。方程式を作ろう。',
+          ja: 'ある数にまず 3 をかけて、次に 5 を足したら 20 になりました。式を作ろう。',
           en: 'Multiply a number by 3 then add 5 to get 20. Build the equation.',
         },
         sub:  { zh: '把"先乘后加"翻成等式', ja: '「かけて足す」を等式にしよう', en: 'Turn "multiply then add" into an equation' },
@@ -1311,7 +1311,7 @@ export const chapters = [
         title: { zh: '8-5 迷惑数字', ja: '8-5 まどわす数字', en: '8-5 Tricky Numbers' },
         story: {
           zh: '一个数先乘以 2 再加 3，得到 13。请列出方程。注意：有多余卡片！',
-          ja: 'ある数に 2 をかけて 3 を足したら 13 になりました。方程式を作ろう。余計なカードに注意！',
+          ja: 'ある数に 2 をかけて 3 を足したら 13 になりました。式を作ろう。使わないカードに注意！',
           en: 'Multiply a number by 2 then add 3 to get 13. Build the equation. Watch for extra cards!',
         },
         sub:  { zh: '别把不相关的数字放进去', ja: '関係ない数字を入れないように', en: 'Don\'t include unrelated numbers' },
@@ -1365,7 +1365,7 @@ export const chapters = [
     name: { zh: '第九章：和差倍问题 — 设一个就够', ja: '第9章：和差倍の問題 — 1つ決めれば十分', en: 'Chapter 9: Sum, Difference & Multiples' },
     desc: {
       zh: '"和、差、倍"三种关系，用 △ 全部能表示！设一个未知数就可以列方程。',
-      ja: '「和・差・倍」の 3 つの関係を △ で表そう！未知数を 1 つ決めれば方程式が作れるよ。',
+      ja: '「和・差・倍」の 3 つの関係を △ で表そう！わからない数を 1 つ決めれば式が作れるよ。',
       en: 'Sum, difference, and multiples — x can express them all! One unknown is enough to build the equation.',
     },
     levels: [
@@ -1375,7 +1375,7 @@ export const chapters = [
         title: { zh: '9-1 和是20差是4', ja: '9-1 和が20、差が4', en: '9-1 Sum 20, Difference 4' },
         story: {
           zh: '两个数的和是 20，其中大数比小数大 4。请列出方程。',
-          ja: '2 つの数の和が 20 で、大きい方が小さい方より 4 大きい。方程式を作ろう。',
+          ja: '2 つの数の和が 20 で、大きい方が小さい方より 4 大きい。式を作ろう。',
           en: 'Two numbers add up to 20, and the bigger one is 4 more. Build the equation.',
         },
         sub:  { zh: '先设小数是 △，那大数就是 △+4，所以和可以写成 2△+4', ja: 'まず小さい数を △ とすると、大きい数は △+4。だから和は 2△+4 と書けるよ', en: 'Let the smaller number be x. Then the bigger one is x + 4, so the sum becomes 2x + 4' },
@@ -1397,7 +1397,7 @@ export const chapters = [
         title: { zh: '9-2 哥哥的糖', ja: '9-2 お兄ちゃんのキャンディ', en: '9-2 Brother\'s Candies' },
         story: {
           zh: '哥哥的糖是弟弟的 2 倍，两人一共 18 颗。请列出方程。',
-          ja: 'お兄ちゃんのキャンディは弟の 2 倍。合わせて 18 個。方程式を作ろう。',
+          ja: 'お兄ちゃんのキャンディは弟の 2 倍。合わせて 18 個。式を作ろう。',
           en: 'Big brother has twice as many candies as little brother. 18 in total. Build the equation.',
         },
         sub:  { zh: '哥哥 = 2△，弟弟 = △', ja: 'お兄ちゃん = 2△、弟 = △', en: 'Brother = 2x, little brother = x' },
@@ -1419,7 +1419,7 @@ export const chapters = [
         title: { zh: '9-3 大数和小数', ja: '9-3 大きい数と小さい数', en: '9-3 Big and Small Numbers' },
         story: {
           zh: '大数是小数的 3 倍，大数比小数多 6。请列出方程。',
-          ja: '大きい数は小さい数の 3 倍で、差は 6。方程式を作ろう。',
+          ja: '大きい数は小さい数の 3 倍で、差は 6。式を作ろう。',
           en: 'The big number is 3 times the small one, and 6 more. Build the equation.',
         },
         sub:  { zh: '大数在一边，小数+6 在另一边', ja: '大きい方を片側、小さい方 + 6 をもう片側に', en: 'Big on one side, small + 6 on the other' },
@@ -1441,7 +1441,7 @@ export const chapters = [
         title: { zh: '9-4 姐弟零花钱', ja: '9-4 姉と弟のおこづかい', en: '9-4 Siblings\' Pocket Money' },
         story: {
           zh: '姐姐的钱是弟弟的 3 倍，姐姐比弟弟多 12 元。请列出方程。',
-          ja: 'お姉ちゃんのお金は弟の 3 倍で、弟より 12 円多い。方程式を作ろう。',
+          ja: 'お姉ちゃんのお金は弟の 3 倍で、弟より 12 円多い。式を作ろう。',
           en: 'Sister has 3 times brother\'s money and 12 yuan more. Build the equation.',
         },
         sub:  { zh: '3 倍 = 比……多 2 倍', ja: '3 倍 = 2 倍分多い', en: '3 times = 2 times more than…' },
@@ -1463,7 +1463,7 @@ export const chapters = [
         title: { zh: '9-5 多余条件', ja: '9-5 余分な条件', en: '9-5 Extra Clues' },
         story: {
           zh: '大数是小数的 3 倍，大数比小数多 8。请列出方程。注意：有一张卡是多余的！',
-          ja: '大きい数は小さい数の 3 倍で、差は 8。方程式を作ろう。余計なカードが 1 枚あるよ！',
+          ja: '大きい数は小さい数の 3 倍で、差は 8。式を作ろう。使わないカードが 1 枚あるよ！',
           en: 'The big number is 3 times the small one, and 8 more. Build the equation. One card is extra!',
         },
         sub:  { zh: '用差去表示关系，不需要和', ja: '差を使って関係を表そう。和は要らないよ', en: 'Use difference for the relation — no sum needed' },
@@ -1524,7 +1524,7 @@ export const chapters = [
         title: { zh: '10-1 今年和5年后', ja: '10-1 今年と5年後', en: '10-1 This Year & 5 Years Later' },
         story: {
           zh: '小明 5 年后是 12 岁。小明今年几岁？请列出方程。',
-          ja: 'たけしくんは 5 年後に 12 歳になります。今年は何歳？方程式を作ろう。',
+          ja: 'たけしくんは 5 年後に 12 歳になります。今年は何歳？式を作ろう。',
           en: 'Alex will be 12 in 5 years. How old is he now? Build the equation.',
         },
         sub:  { zh: '5 年后 = 今年 + 5', ja: '5 年後 = 今年 + 5', en: '5 years later = this year + 5' },
@@ -1546,7 +1546,7 @@ export const chapters = [
         title: { zh: '10-2 爸爸比我大', ja: '10-2 お父さんとの年齢差', en: '10-2 Dad Is Older' },
         story: {
           zh: '爸爸比小明大 25 岁，爸爸今年 33 岁。小明今年几岁？请列出方程。',
-          ja: 'お父さんはたけしくんより 25 歳年上。お父さんは今年 33 歳。たけしくんは今年何歳？方程式を作ろう。',
+          ja: 'お父さんは、たけしくんより 25 歳年上です。お父さんは今年 33 歳。たけしくんは今年何歳？式を作ろう。',
           en: 'Dad is 25 years older than Alex. Dad is 33. How old is Alex? Build the equation.',
         },
         sub:  { zh: '小明 + 25 = 爸爸', ja: 'たけし + 25 = お父さん', en: 'Alex + 25 = Dad' },
@@ -1568,7 +1568,7 @@ export const chapters = [
         title: { zh: '10-3 哥弟年龄和', ja: '10-3 兄弟の年齢の和', en: '10-3 Brothers\' Age Sum' },
         story: {
           zh: '哥哥今年年龄是弟弟的 2 倍，两人年龄和是 21 岁。请列出方程。',
-          ja: 'お兄ちゃんの年齢は弟の 2 倍。ふたりの年齢の和は 21。方程式を作ろう。',
+          ja: 'お兄ちゃんの年齢は弟の 2 倍。ふたりの年齢の和は 21。式を作ろう。',
           en: 'Brother is twice little brother\'s age. Their ages add up to 21. Build the equation.',
         },
         sub:  { zh: '哥哥 = 2△，弟弟 = △', ja: 'お兄ちゃん = 2△、弟 = △', en: 'Brother = 2x, little brother = x' },
@@ -1595,7 +1595,7 @@ export const chapters = [
     name: { zh: '第十一章：盈亏与平均数 — 多了少了都能列', ja: '第11章：過不足と平均 — 多くても少なくても式になる', en: 'Chapter 11: Surplus & Shortage' },
     desc: {
       zh: '"每人分 3 个还多 2 个；每人分 4 个就少 3 个"——两种分法写成方程，人数就知道了！',
-      ja: '「1 人 3 個ずつだと 2 個余り、4 個ずつだと 3 個足りない」—— 方程式にすれば人数が分かる！',
+      ja: '「1 人 3 個ずつだと 2 個余り、4 個ずつだと 3 個足りない」—— 式にすれば人数が分かる！',
       en: '"3 each with 2 left; 4 each and 3 short" — write both ways as an equation to find the count!',
     },
     levels: [
@@ -1605,7 +1605,7 @@ export const chapters = [
         title: { zh: '11-1 分糖果', ja: '11-1 キャンディを配ろう', en: '11-1 Sharing Candies' },
         story: {
           zh: '有一些糖果，每人分 3 个还多 2 个；每人分 4 个就少 3 个。请列出方程。',
-          ja: 'キャンディがいくつか。1 人 3 個ずつだと 2 個余り、4 個ずつだと 3 個足りない。方程式を作ろう。',
+          ja: 'キャンディがいくつかあります。1 人 3 個ずつだと 2 個あまります。4 個ずつだと 3 個足りません。式を作ろう。',
           en: 'Some candies: 3 per person leaves 2 extra; 4 per person needs 3 more. Build the equation.',
         },
         sub:  { zh: '两种分法，糖果总数一样', ja: '2 通りの配り方、キャンディの合計は同じ', en: 'Two ways to share, same total candies' },
@@ -1628,7 +1628,7 @@ export const chapters = [
         title: { zh: '11-2 分组坐', ja: '11-2 グループ分け', en: '11-2 Seating Groups' },
         story: {
           zh: '同一批同学，每组 5 人还剩 2 人；每组 6 人就少 2 人。请列出方程。',
-          ja: '同じクラスの生徒。1 グループ 5 人だと 2 人余り、6 人だと 2 人足りない。方程式を作ろう。',
+          ja: '同じクラスの人数を考えます。1 グループ 5 人だと 2 人あまります。6 人ずつだと 2 人足りません。式を作ろう。',
           en: 'Same students: groups of 5 leave 2 extra; groups of 6 need 2 more. Build the equation.',
         },
         sub:  { zh: '同一批人，总人数一样', ja: '同じ人数なので合計は同じ', en: 'Same group of people, same total' },
@@ -1651,7 +1651,7 @@ export const chapters = [
         title: { zh: '11-3 装球', ja: '11-3 ボールを箱に入れよう', en: '11-3 Packing Balls' },
         story: {
           zh: '19 个球装进 4 个盒子，每盒装一样多，还剩 3 个。每盒几个？请列出方程。',
-          ja: 'ボール 19 個を 4 箱に入れます。各箱同じ数で 3 個余ります。1 箱何個？方程式を作ろう。',
+          ja: 'ボール 19 個を 4 箱に入れます。どの箱も同じ数で、3 個あまります。1 箱何個？式を作ろう。',
           en: '19 balls into 4 boxes, same amount each, 3 left over. How many per box? Build the equation.',
         },
         sub:  { zh: '装的 + 剩的 = 总数', ja: '入れた分 + 余り = 合計', en: 'packed + leftover = total' },
@@ -1673,7 +1673,7 @@ export const chapters = [
         title: { zh: '11-4 平均每盒', ja: '11-4 1箱あたりの平均', en: '11-4 Average Per Box' },
         story: {
           zh: '5 盒糖，每盒一样多。又多加了 2 颗散装糖后，一共有 27 颗。每盒几颗？请列出方程。',
-          ja: '5 箱のキャンディ、各箱同じ数。バラ 2 個を足したら合計 27 個。1 箱何個？方程式を作ろう。',
+          ja: 'キャンディの箱が 5 箱あります。どの箱も同じ数です。ばらの 2 個を足すと、ぜんぶで 27 個。1 箱は何個？式を作ろう。',
           en: '5 boxes of candy, same amount each. Adding 2 loose ones makes 27. How many per box? Build the equation.',
         },
         sub:  { zh: '5 盒 + 散装 = 总数', ja: '5 箱分 + バラ = 合計', en: '5 boxes + loose = total' },
@@ -1695,7 +1695,7 @@ export const chapters = [
         title: { zh: '11-5 多余数据', ja: '11-5 余分なデータ', en: '11-5 Extra Data' },
         story: {
           zh: '24 个橘子装进 3 个袋子，每袋一样多，一个也不剩。每袋几个？请列出方程。注意：有一张卡是多余的！',
-          ja: 'みかん 24 個を 3 袋に入れます。各袋同じ数でちょうどぴったり。1 袋何個？方程式を作ろう。余計なカードが 1 枚あるよ！',
+          ja: 'みかん 24 個を 3 袋に分けます。どの袋も同じ数です。1 袋は何個？式を作ろう。使わないカードが 1 枚あるよ！',
           en: '24 oranges into 3 bags, same number each, none left. How many per bag? Build the equation. One card is extra!',
         },
         sub:  { zh: '"一个也不剩"说明没有余数', ja: '「ちょうど」ということは余りなし', en: '"None left" means no remainder' },

@@ -161,6 +161,226 @@ export const practiceDecks = [
   AVERAGE_TOTAL_DECK,
 ];
 
+const STAGE_SENSE = {
+  id: 'sense',
+  type: 'feel',
+  sessionSize: 10,
+  timed: false,
+  coinMultiplier: 0,
+  name: { zh: '找感觉', ja: '感じをつかむ', en: 'Find the Pattern' },
+  desc: {
+    zh: '先观察结构，不急着填答案。',
+    ja: 'まず形を見ます。答えを急がなくて大丈夫。',
+    en: 'Observe the structure first, before entering answers.',
+  },
+};
+
+const STAGE_RELATION = {
+  id: 'relation',
+  type: 'relationship',
+  sessionSize: 10,
+  timed: false,
+  coinMultiplier: 0,
+  name: { zh: '说关系', ja: '関係を言う', en: 'Name the Relationship' },
+  desc: {
+    zh: '判断这是几份、哪种逆算、问的是哪一个量。',
+    ja: '何個分か、どの逆算か、何を聞いているかを考えます。',
+    en: 'Decide the relationship before calculating.',
+  },
+};
+
+const STAGE_TRAIN = {
+  id: 'train',
+  type: 'practice',
+  sessionSize: 10,
+  timed: true,
+  coinMultiplier: 1,
+  name: { zh: '小训练', ja: '小トレーニング', en: 'Focused Practice' },
+  desc: {
+    zh: '固定 10 题，练一个专项。',
+    ja: '10 問で、1 つの力を練習します。',
+    en: '10 problems focused on one skill.',
+  },
+};
+
+const STAGE_CHALLENGE = {
+  id: 'challenge',
+  type: 'mixed',
+  sessionSize: 10,
+  timed: true,
+  coinMultiplier: 1.35,
+  name: { zh: '混合挑战', ja: 'ミックス挑戦', en: 'Mixed Challenge' },
+  desc: {
+    zh: '混入相邻专项，先判断方法再算。',
+    ja: '近い力をまぜて、先に方法を選びます。',
+    en: 'Mixed nearby skills. Pick the route before calculating.',
+  },
+};
+
+function makeStages(moduleId, trainDeckId, challengeDeckId = SMART_CALC_DECK.id, goals = {}) {
+  const stage = (base) => ({
+    ...base,
+    moduleId,
+    questionPool: base.id === 'challenge' ? [challengeDeckId] : [trainDeckId],
+    goal: goals[base.id] || base.desc,
+  });
+  return [stage(STAGE_SENSE), stage(STAGE_RELATION), stage(STAGE_TRAIN), stage(STAGE_CHALLENGE)];
+}
+
+function moduleFromDeck(deck, domainId, goals = {}, extra = {}) {
+  return {
+    id: deck.id,
+    domainId,
+    icon: deck.icon,
+    name: deck.name,
+    desc: deck.desc,
+    deckId: deck.id,
+    prereq: extra.prereq || {
+      zh: '会基本整数四则运算。',
+      ja: '整数の四則計算が少しできる。',
+      en: 'Basic whole-number arithmetic.',
+    },
+    recommendation: extra.recommendation || {
+      zh: '先做“找感觉”和“说关系”，再进入小训练。',
+      ja: 'まず「感じをつかむ」「関係を言う」から始めよう。',
+      en: 'Start with pattern and relationship stages before timed practice.',
+    },
+    stages: makeStages(deck.id, deck.id, extra.challengeDeckId || SMART_CALC_DECK.id, goals),
+  };
+}
+
+export const practiceDomains = [
+  {
+    id: 'number-sense',
+    icon: '🎯',
+    name: { zh: '数的拆合感', ja: '数の分け方・まとめ方', en: 'Number Sense' },
+    desc: {
+      zh: '练凑整、拆数和估算，先看哪里能变简单。',
+      ja: 'きりよくする、分ける、見積もる力を育てます。',
+      en: 'Build regrouping, decomposing, and estimation habits.',
+    },
+    modules: [
+      moduleFromDeck(ROUNDING_DECK, 'number-sense', {
+        sense: {
+          zh: '这局只练：先找哪两个数能凑整。',
+          ja: 'このセット：先にきりよくなる 2 つを見つけよう。',
+          en: 'Find the two numbers that make a round number first.',
+        },
+        relation: {
+          zh: '这局只练：说出为什么这样配对更快。',
+          ja: 'このセット：なぜその組が速いかを考えよう。',
+          en: 'Name why a pair makes the calculation easier.',
+        },
+      }),
+    ],
+  },
+  {
+    id: 'operation-relations',
+    icon: '🔎',
+    name: { zh: '四则关系感', ja: '四則の関係', en: 'Operation Relationships' },
+    desc: {
+      zh: '练加减互逆、乘除互逆和先后顺序。',
+      ja: 'たし算・ひき算、かけ算・わり算のつながりを練習します。',
+      en: 'Practice inverse operations and order of operations.',
+    },
+    modules: [
+      moduleFromDeck(INVERSE_MISSING_DECK, 'operation-relations', {
+        relation: {
+          zh: '这局只练：先判断应该倒着用哪种运算。',
+          ja: 'このセット：どの逆算を使うか先に選ぼう。',
+          en: 'Choose the inverse operation before solving.',
+        },
+      }),
+      moduleFromDeck(ORDER_OPS_DECK, 'operation-relations'),
+      moduleFromDeck(MUL_DIV_DECK, 'operation-relations'),
+    ],
+  },
+  {
+    id: 'multiplicative-structure',
+    icon: '🧱',
+    name: { zh: '乘法结构感', ja: 'かけ算の構造', en: 'Multiplicative Structure' },
+    desc: {
+      zh: '练几份同一个数、因数对和倍数节奏。',
+      ja: '何個分、かけ算ペア、倍数のリズムを練習します。',
+      en: 'Train groups, factor pairs, and multiple rhythms.',
+    },
+    modules: [
+      moduleFromDeck(MULTIPLICATIVE_STRUCTURE_DECK, 'multiplicative-structure', {
+        sense: {
+          zh: '这局只练：看到 24，找出乘法搭档。',
+          ja: 'このセット：24 を見て、かけ算ペアを見つけよう。',
+          en: 'See 24 and find its multiplication partners.',
+        },
+      }),
+      moduleFromDeck(FACTOR_DECK, 'multiplicative-structure'),
+    ],
+  },
+  {
+    id: 'factor-multiple-sense',
+    icon: '🔢',
+    name: { zh: '因数倍数感', ja: '約数・倍数の感覚', en: 'Factors & Multiples' },
+    desc: {
+      zh: '分清因数、倍数、公因数、公倍数，再做最大最小。',
+      ja: '約数・倍数・公約数・公倍数を分けて考えます。',
+      en: 'Separate factors, multiples, common factors, and common multiples.',
+    },
+    modules: [
+      moduleFromDeck(FACTOR_MULTIPLE_DECK, 'factor-multiple-sense', {
+        relation: {
+          zh: '这局只练：先分清题目问的是因数还是倍数。',
+          ja: 'このセット：聞かれているのが約数か倍数かを見分けよう。',
+          en: 'Decide whether the problem asks about factors or multiples.',
+        },
+      }),
+    ],
+  },
+  {
+    id: 'quantity-sense',
+    icon: '📏',
+    name: { zh: '量与单位感', ja: '量と単位', en: 'Quantities & Units' },
+    desc: {
+      zh: '练单位换算、平均、总量和每份之间的关系。',
+      ja: '単位換算、平均、合計、1つ分の関係を練習します。',
+      en: 'Connect units, averages, totals, and one share.',
+    },
+    modules: [
+      moduleFromDeck(UNIT_CONVERSION_DECK, 'quantity-sense'),
+      moduleFromDeck(AVERAGE_TOTAL_DECK, 'quantity-sense', {
+        relation: {
+          zh: '这局只练：判断问的是总量、一份量还是份数。',
+          ja: 'このセット：合計・1つ分・個数のどれを聞いているか選ぼう。',
+          en: 'Decide whether the problem asks for total, one share, or groups.',
+        },
+      }),
+    ],
+  },
+  {
+    id: 'mixed-challenge',
+    icon: '⭐',
+    name: { zh: '综合挑战', ja: '総合チャレンジ', en: 'Mixed Challenge' },
+    desc: {
+      zh: '把多种结构混在一起，先选路线再计算。',
+      ja: 'いろいろな形をまぜて、先に道すじを選びます。',
+      en: 'Mix several structures and choose the route first.',
+    },
+    modules: [
+      moduleFromDeck(SMART_CALC_DECK, 'mixed-challenge', {
+        sense: {
+          zh: '这局只练：先看这题像哪一种结构。',
+          ja: 'このセット：どの形に似ているかを先に見よう。',
+          en: 'First decide which structure the problem resembles.',
+        },
+      }, {
+        prereq: {
+          zh: '建议先做完前面的几个专项。',
+          ja: '先に前のトレーニングをいくつか終えるのがおすすめ。',
+          en: 'Recommended after trying several focused modules.',
+        },
+      }),
+    ],
+  },
+];
+
 const ratingTiers = [
   {
     id: 'flash',
@@ -231,10 +451,20 @@ function randomInt(min, max, random) {
 function asQuestion(partial) {
   return {
     deckId: SMART_CALC_DECK.id,
+    mode: 'number-input',
     inputMode: 'integer',
     points: 10,
     ...partial,
   };
+}
+
+function asChoiceQuestion(partial) {
+  return asQuestion({
+    inputMode: 'choice',
+    points: 0,
+    benchmarkMs: 0,
+    ...partial,
+  });
 }
 
 function gcdInt(a, b) {
@@ -1347,6 +1577,328 @@ const deckTemplateIds = {
   [AVERAGE_TOTAL_DECK.id]: ['average-total'],
 };
 
+export const practiceStageIds = ['sense', 'relation', 'train', 'challenge'];
+
+function allPracticeModules() {
+  return practiceDomains.flatMap((domain) =>
+    domain.modules.map((module) => ({ ...module, domain })),
+  );
+}
+
+export function getPracticeDomain(domainId) {
+  return practiceDomains.find((domain) => domain.id === domainId) || practiceDomains[0];
+}
+
+export function getPracticeModule(moduleId) {
+  return allPracticeModules().find((module) => module.id === moduleId) || practiceDomains[0].modules[0];
+}
+
+export function getPracticeStage(moduleId, stageId = 'train') {
+  const module = getPracticeModule(moduleId);
+  return module.stages.find((stage) => stage.id === stageId) || module.stages.find((stage) => stage.id === 'train') || module.stages[0];
+}
+
+function makeChoiceOption(id, text) {
+  return { id: String(id), text };
+}
+
+function makeRoundingSenseQuestion() {
+  return asChoiceQuestion({
+    id: 'rounding-sense-198-47-2-53',
+    templateId: 'rounding-sense',
+    mode: 'pair-choice',
+    expression: '198 + 47 + 2 + 53',
+    prompt: {
+      zh: '先选出一对能凑成整百的数。',
+      ja: '先に 100 のまとまりを作れる 2 つを選ぼう。',
+      en: 'Choose two numbers that make a clean hundred first.',
+    },
+    options: [
+      makeChoiceOption('198', { zh: '198', ja: '198', en: '198' }),
+      makeChoiceOption('47', { zh: '47', ja: '47', en: '47' }),
+      makeChoiceOption('2', { zh: '2', ja: '2', en: '2' }),
+      makeChoiceOption('53', { zh: '53', ja: '53', en: '53' }),
+    ],
+    answer: ['198', '2'],
+    strategy: {
+      zh: '198 和 2 先凑成 200；47 和 53 也能凑成 100。',
+      ja: '198 と 2 で 200。47 と 53 でも 100 が作れます。',
+      en: '198 and 2 make 200 first; 47 and 53 also make 100.',
+    },
+    hint: {
+      zh: '先看谁离整百只差一点。',
+      ja: '100 や 200 に少しだけ足りない数を見よう。',
+      en: 'Look for a number that is just short of a hundred.',
+    },
+  });
+}
+
+function makeRoundingRelationQuestion() {
+  return asChoiceQuestion({
+    id: 'rounding-relation-399-85-1-15',
+    templateId: 'rounding-relation',
+    mode: 'route-choice',
+    expression: '399 + 85 + 1 + 15',
+    prompt: {
+      zh: '哪条路线最先把数变整？',
+      ja: 'どの道すじが先にきりよくなりますか。',
+      en: 'Which route makes round numbers first?',
+    },
+    options: [
+      makeChoiceOption('route-good', {
+        zh: '399+1，85+15',
+        ja: '399+1、85+15',
+        en: '399+1 and 85+15',
+      }),
+      makeChoiceOption('left-to-right', {
+        zh: '从左到右硬算',
+        ja: '左から順に計算',
+        en: 'Calculate from left to right',
+      }),
+      makeChoiceOption('wrong-pair', {
+        zh: '399+85，1+15',
+        ja: '399+85、1+15',
+        en: '399+85 and 1+15',
+      }),
+    ],
+    answer: 'route-good',
+    strategy: {
+      zh: '399+1=400，85+15=100，先凑整会更清楚。',
+      ja: '399+1=400、85+15=100。先にきりよくすると見やすいです。',
+      en: '399+1=400 and 85+15=100, so rounding first is clearer.',
+    },
+    hint: {
+      zh: '找能变成 400 或 100 的组合。',
+      ja: '400 や 100 になる組を探そう。',
+      en: 'Look for pairs that become 400 or 100.',
+    },
+  });
+}
+
+function makeInverseRelationQuestion() {
+  return asChoiceQuestion({
+    id: 'inverse-relation-blank-plus-37',
+    templateId: 'inverse-relation',
+    mode: 'single-choice',
+    expression: '□ + 37 = 100',
+    prompt: {
+      zh: '缺的是加数，应该怎么倒着想？',
+      ja: 'たし算の穴です。どう逆に考える？',
+      en: 'The missing number is an addend. How should you work backward?',
+    },
+    options: [
+      makeChoiceOption('sub', { zh: '100−37', ja: '100−37', en: '100−37' }),
+      makeChoiceOption('add', { zh: '100+37', ja: '100+37', en: '100+37' }),
+      makeChoiceOption('mul', { zh: '100×37', ja: '100×37', en: '100×37' }),
+      makeChoiceOption('div', { zh: '100÷37', ja: '100÷37', en: '100÷37' }),
+    ],
+    answer: 'sub',
+    strategy: {
+      zh: '加法缺数，用总数减已知加数。',
+      ja: 'たし算の穴は、合計からわかっている数を引きます。',
+      en: 'For a missing addend, subtract the known addend from the total.',
+    },
+    hint: {
+      zh: '想：什么数加 37 得到 100？',
+      ja: '何に 37 を足すと 100 になる？',
+      en: 'Ask: what plus 37 makes 100?',
+    },
+  });
+}
+
+function makeMultiplicativeSenseQuestion() {
+  return asChoiceQuestion({
+    id: 'multiplicative-sense-24',
+    templateId: 'multiplicative-sense',
+    mode: 'multi-select',
+    expression: '24',
+    prompt: {
+      zh: '哪些乘法可以表示 24？',
+      ja: '24 を表せるかけ算はどれ？',
+      en: 'Which multiplications can make 24?',
+    },
+    options: [
+      makeChoiceOption('3x8', { zh: '3×8', ja: '3×8', en: '3×8' }),
+      makeChoiceOption('4x6', { zh: '4×6', ja: '4×6', en: '4×6' }),
+      makeChoiceOption('2x12', { zh: '2×12', ja: '2×12', en: '2×12' }),
+      makeChoiceOption('5x4', { zh: '5×4', ja: '5×4', en: '5×4' }),
+    ],
+    answer: ['3x8', '4x6', '2x12'],
+    strategy: {
+      zh: '24 可以看成 3×8、4×6、2×12；5×4 是 20。',
+      ja: '24 は 3×8、4×6、2×12。5×4 は 20 です。',
+      en: '24 can be 3×8, 4×6, or 2×12. 5×4 is 20.',
+    },
+    hint: {
+      zh: '先用乘法口诀检查每个选项。',
+      ja: '九九で一つずつ確かめよう。',
+      en: 'Check each option with multiplication facts.',
+    },
+  });
+}
+
+function makeFactorMultipleRelationQuestion() {
+  return asChoiceQuestion({
+    id: 'factor-multiple-relation-6-8',
+    templateId: 'factor-multiple-relation',
+    mode: 'single-choice',
+    expression: {
+      zh: '6 和 8 第一次共同跳到 24',
+      ja: '6 と 8 が、はじめて同じ 24 に来ました',
+      en: '6 and 8 first meet at 24',
+    },
+    prompt: {
+      zh: '这里的 24 是什么？',
+      ja: 'この 24 は何ですか。',
+      en: 'What is 24 here?',
+    },
+    options: [
+      makeChoiceOption('factor', { zh: '因数', ja: '約数', en: 'factor' }),
+      makeChoiceOption('multiple', { zh: '倍数', ja: '倍数', en: 'multiple' }),
+      makeChoiceOption('common-factor', { zh: '公因数', ja: '公約数', en: 'common factor' }),
+      makeChoiceOption('common-multiple', { zh: '公倍数', ja: '公倍数', en: 'common multiple' }),
+    ],
+    answer: 'common-multiple',
+    strategy: {
+      zh: '24 同时在 6 的倍数和 8 的倍数里，所以是公倍数。',
+      ja: '24 は 6 の倍数でも 8 の倍数でもあるので、公倍数です。',
+      en: '24 is a multiple of both 6 and 8, so it is a common multiple.',
+    },
+    hint: {
+      zh: '“共同跳到”通常是在找公倍数。',
+      ja: '同じ場所に来るときは、公倍数を見ています。',
+      en: 'When two jumps meet, you are looking at common multiples.',
+    },
+  });
+}
+
+function makeAverageRouteQuestion() {
+  return asChoiceQuestion({
+    id: 'average-route-5-boxes-40',
+    templateId: 'average-route',
+    mode: 'route-choice',
+    expression: {
+      zh: '5 盒彩笔一共 40 支，平均每盒多少支？',
+      ja: '5 箱で全部 40 本。1 箱平均何本？',
+      en: '5 boxes have 40 pencils total. How many per box?',
+    },
+    prompt: {
+      zh: '这题问的是哪一个量？',
+      ja: 'この問題で聞いているのはどれ？',
+      en: 'Which quantity is the question asking for?',
+    },
+    options: [
+      makeChoiceOption('total', { zh: '总量', ja: '合計', en: 'total' }),
+      makeChoiceOption('one-share', { zh: '一份量', ja: '1 つ分', en: 'one share' }),
+      makeChoiceOption('group-count', { zh: '份数', ja: '個数', en: 'number of groups' }),
+    ],
+    answer: 'one-share',
+    strategy: {
+      zh: '已知总量和份数，问平均每盒，就是问一份量。',
+      ja: '合計と箱の数がわかっています。聞いているのは 1 箱分です。',
+      en: 'You know the total and number of groups. The question asks for one share.',
+    },
+    hint: {
+      zh: '看到“每盒多少”，通常是在问一份量。',
+      ja: '「1 箱何本」は 1 つ分を聞いています。',
+      en: '“How many per box” asks for one share.',
+    },
+  });
+}
+
+function makeGenericStageQuestion(moduleId, stageId, random) {
+  const module = getPracticeModule(moduleId);
+  const deckId = module.deckId || moduleId;
+  if (stageId === 'train') return createPracticeQuestion(deckId, { random });
+  if (stageId === 'challenge') return createPracticeQuestion(SMART_CALC_DECK.id, { random });
+
+  const fallbackByModule = {
+    [ROUNDING_DECK.id]: stageId === 'relation' ? makeRoundingRelationQuestion : makeRoundingSenseQuestion,
+    [INVERSE_MISSING_DECK.id]: makeInverseRelationQuestion,
+    [ORDER_OPS_DECK.id]: () => asChoiceQuestion({
+      id: 'order-ops-sense-3-plus-4-times-5',
+      templateId: 'order-ops-sense',
+      mode: 'route-choice',
+      expression: '3 + 4 × 5',
+      prompt: { zh: '应该先算哪一部分？', ja: '先に計算するのはどこ？', en: 'Which part should be calculated first?' },
+      options: [
+        makeChoiceOption('4x5', { zh: '4×5', ja: '4×5', en: '4×5' }),
+        makeChoiceOption('3+4', { zh: '3+4', ja: '3+4', en: '3+4' }),
+        makeChoiceOption('left', { zh: '从左到右', ja: '左から順に', en: 'left to right' }),
+      ],
+      answer: '4x5',
+      strategy: { zh: '没有括号时，先乘除后加减。', ja: 'かっこがなければ、先にかけ算・わり算です。', en: 'Without parentheses, multiply/divide before add/subtract.' },
+      hint: { zh: '先找乘法或除法。', ja: 'かけ算やわり算を先に探そう。', en: 'Look for multiplication or division first.' },
+    }),
+    [MUL_DIV_DECK.id]: () => asChoiceQuestion({
+      id: 'mul-div-sense-25',
+      templateId: 'mul-div-sense',
+      mode: 'route-choice',
+      expression: '16 ÷ 4 × 25 × 13',
+      prompt: { zh: '哪一步能最快凑成 100？', ja: 'どれを先にすると 100 が作りやすい？', en: 'Which first step helps make 100 fastest?' },
+      options: [
+        makeChoiceOption('16div4', { zh: '16÷4，再和 25 配对', ja: '16÷4 をして 25 と組む', en: '16÷4, then pair with 25' }),
+        makeChoiceOption('25x13', { zh: '先算 25×13', ja: '25×13 を先にする', en: '25×13 first' }),
+        makeChoiceOption('all-left', { zh: '从左到右硬算', ja: '左から順に計算', en: 'left to right' }),
+      ],
+      answer: '16div4',
+      strategy: { zh: '16÷4=4，4×25=100。', ja: '16÷4=4、4×25=100 です。', en: '16÷4=4, then 4×25=100.' },
+      hint: { zh: '看到 25，找 4。', ja: '25 を見たら 4 を探そう。', en: 'When you see 25, look for 4.' },
+    }),
+    [MULTIPLICATIVE_STRUCTURE_DECK.id]: makeMultiplicativeSenseQuestion,
+    [FACTOR_DECK.id]: () => asChoiceQuestion({
+      id: 'factor-sense-common-6',
+      templateId: 'factor-sense-common',
+      mode: 'single-choice',
+      expression: '6×8 + 6×2',
+      prompt: { zh: '这里重复出现的共同因数是谁？', ja: 'くり返し出ている数はどれ？', en: 'Which factor is repeated?' },
+      options: [
+        makeChoiceOption('6', { zh: '6', ja: '6', en: '6' }),
+        makeChoiceOption('8', { zh: '8', ja: '8', en: '8' }),
+        makeChoiceOption('2', { zh: '2', ja: '2', en: '2' }),
+      ],
+      answer: '6',
+      strategy: { zh: '两项都有 6，可以看成 6 个 8 加 6 个 2。', ja: 'どちらにも 6 があり、6 が何個分かで見られます。', en: 'Both terms contain 6, so 6 is the common factor.' },
+      hint: { zh: '看乘号两边，谁在两项里都出现？', ja: '二つの式に同じ数がないか見よう。', en: 'Look for the number appearing in both products.' },
+    }),
+    [FACTOR_MULTIPLE_DECK.id]: makeFactorMultipleRelationQuestion,
+    [UNIT_CONVERSION_DECK.id]: () => asChoiceQuestion({
+      id: 'unit-conversion-sense-meter',
+      templateId: 'unit-conversion-sense',
+      mode: 'single-choice',
+      expression: '1 m = ? cm',
+      prompt: { zh: '1 米等于多少厘米？', ja: '1 m は何 cm？', en: 'How many centimeters are in 1 meter?' },
+      options: [
+        makeChoiceOption('10', { zh: '10', ja: '10', en: '10' }),
+        makeChoiceOption('100', { zh: '100', ja: '100', en: '100' }),
+        makeChoiceOption('1000', { zh: '1000', ja: '1000', en: '1000' }),
+      ],
+      answer: '100',
+      strategy: { zh: '1 米 = 100 厘米。', ja: '1 m = 100 cm です。', en: '1 meter = 100 centimeters.' },
+      hint: { zh: '先记住常见单位之间的换算。', ja: 'よく使う単位の関係を思い出そう。', en: 'Recall common unit relationships first.' },
+    }),
+    [AVERAGE_TOTAL_DECK.id]: makeAverageRouteQuestion,
+    [SMART_CALC_DECK.id]: () => asChoiceQuestion({
+      id: 'smart-calc-sense-structure',
+      templateId: 'smart-calc-sense',
+      mode: 'route-choice',
+      expression: '65×48 + 48×35',
+      prompt: { zh: '这题最像哪种结构？', ja: 'この問題はどの形に近い？', en: 'Which structure does this problem resemble?' },
+      options: [
+        makeChoiceOption('common-factor', { zh: '共同因数', ja: '共通因数', en: 'common factor' }),
+        makeChoiceOption('unit', { zh: '单位换算', ja: '単位換算', en: 'unit conversion' }),
+        makeChoiceOption('average', { zh: '平均数', ja: '平均', en: 'average' }),
+      ],
+      answer: 'common-factor',
+      strategy: { zh: '两项都有 48，所以先看共同因数。', ja: 'どちらにも 48 があるので、共通因数を見ます。', en: 'Both terms include 48, so look for a common factor.' },
+      hint: { zh: '先看有没有重复出现的乘数。', ja: 'くり返し出ている数を探そう。', en: 'Look for a repeated factor first.' },
+    }),
+  };
+
+  const factory = fallbackByModule[module.id] || makeRoundingSenseQuestion;
+  return factory(random);
+}
+
 function getDeck(deckId = SMART_CALC_DECK.id) {
   return practiceDecks.find((deck) => deck.id === deckId) || SMART_CALC_DECK;
 }
@@ -1363,6 +1915,29 @@ export function createPracticeQuestion(deckId = SMART_CALC_DECK.id, options = {}
     deck,
     deckId: deck.id,
     points: question.points || 10,
+  };
+}
+
+export function createPracticeStageQuestion(moduleId = ROUNDING_DECK.id, stageId = 'train', options = {}) {
+  const random = options.random || Math.random;
+  const module = getPracticeModule(moduleId);
+  const domain = getPracticeDomain(module.domainId);
+  const stage = getPracticeStage(module.id, stageId);
+  const baseQuestion = makeGenericStageQuestion(module.id, stage.id, random);
+  const stagePoints = stage.timed
+    ? Math.max(1, Math.round((baseQuestion.points || 10) * (stage.coinMultiplier || 1)))
+    : 0;
+  return {
+    ...baseQuestion,
+    module,
+    moduleId: module.id,
+    domain,
+    domainId: domain.id,
+    stage,
+    stageId: stage.id,
+    deck: getDeck(module.deckId || baseQuestion.deckId),
+    deckId: module.deckId || baseQuestion.deckId,
+    points: stagePoints,
   };
 }
 
@@ -1383,7 +1958,55 @@ export function parsePracticeAnswer(value) {
   return { ok: true, value: Number(text) };
 }
 
+function normalizeChoiceSelection(value) {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (value == null) return [];
+  const text = String(value).trim();
+  if (!text) return [];
+  return text.split(/[,\s|]+/).map(String).filter(Boolean);
+}
+
+function sameChoiceSet(a, b) {
+  const left = normalizeChoiceSelection(a).sort();
+  const right = normalizeChoiceSelection(b).sort();
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
 export function evaluatePracticeResult(question, answerText, elapsedMs) {
+  if ((question.mode || 'number-input') !== 'number-input') {
+    const submitted = normalizeChoiceSelection(answerText);
+    if (!submitted.length) {
+      return {
+        correct: false,
+        reason: 'empty',
+      };
+    }
+    if (!sameChoiceSet(submitted, question.answer)) {
+      return {
+        correct: false,
+        reason: 'wrong',
+        submitted,
+      };
+    }
+    return {
+      correct: true,
+      submitted,
+      elapsedMs,
+      points: question.points || 0,
+      tier: question.points ? 'steady' : 'learning',
+      title: question.points ? ratingTiers[2].title : {
+        zh: '感觉找对了',
+        ja: '形が見えたね',
+        en: 'Pattern Spotted',
+      },
+      comment: question.points ? ratingTiers[2].comment : {
+        zh: '先看结构再计算，这一步做对了。',
+        ja: '先に形を見ることができました。',
+        en: 'You looked at the structure before calculating.',
+      },
+    };
+  }
+
   const parsed = parsePracticeAnswer(answerText);
   if (!parsed.ok) {
     return {

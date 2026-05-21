@@ -17,7 +17,15 @@ import {
   isSolved, hasHiddenSigns, solveForX,
 } from './engine.js';
 import { chapters, flattenLevels, journeys } from './levels.js';
-import { practiceDecks, createPracticeQuestion, evaluatePracticeResult, formatElapsed } from './practice.js';
+import {
+  practiceDomains,
+  createPracticeStageQuestion,
+  evaluatePracticeResult,
+  formatElapsed,
+  getPracticeDomain,
+  getPracticeModule,
+  getPracticeStage,
+} from './practice.js';
 import { getCoachTip } from './coach.js';
 import { t, lt, setLocale, getLocale, applyStaticI18n, initLocale } from './i18n.js';
 import { loadState, getState, updateState } from './state.js';
@@ -56,12 +64,16 @@ const uiState = {
 };
 
 const practiceState = {
-  deckId: 'smart-calc',
-  mode: 'lobby',
+  deckId: 'rounding-sum',
+  domainId: 'number-sense',
+  moduleId: 'rounding-sum',
+  stageId: 'train',
+  mode: 'domain-lobby',
   question: null,
   startedAt: 0,
   timerId: null,
   feedback: null,
+  selectedOptionIds: [],
   questionIndex: 0,
   totalQuestions: 10,
   pendingCoins: 0,
@@ -442,6 +454,63 @@ function randomInt(a, b) {
   return Math.floor(Math.random() * (b - a + 1)) + a;
 }
 
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function splitJapaneseReadable(text) {
+  const sentences = String(text).match(/[^。！？!?]+[。！？!?]?/g) || [String(text)];
+  const lines = [];
+  sentences.forEach((sentence) => {
+    const trimmed = sentence.trim();
+    if (!trimmed) return;
+    if ([...trimmed].length <= 34) {
+      lines.push(trimmed);
+      return;
+    }
+    let buffer = '';
+    trimmed.split(/(、)/).forEach((part) => {
+      if (!part) return;
+      const next = buffer + part;
+      if (buffer && [...next].length > 28 && part !== '、') {
+        lines.push(buffer);
+        buffer = part;
+      } else {
+        buffer = next;
+      }
+    });
+    if (buffer) lines.push(buffer);
+  });
+  return lines.length ? lines : [String(text)];
+}
+
+function highlightJapaneseTokens(line) {
+  return escapeHtml(line).replace(
+    /([△□+\-−×÷=]|[0-9]+(?:\s*(?:個|本|冊|円|歳|年|人|箱|袋|点|枚|回|分|秒|m|cm|kg|g|ページ))?)/g,
+    '<span class="ja-token">$1</span>',
+  );
+}
+
+function setReadableText(el, text) {
+  const raw = String(text ?? '');
+  if (getLocale() !== 'ja') {
+    el.classList.remove('ja-readable-host');
+    el.textContent = raw;
+    return;
+  }
+  el.classList.add('ja-readable-host');
+  el.innerHTML = '<span class="ja-readable">' +
+    splitJapaneseReadable(raw)
+      .map((line) => '<span class="ja-story-line">' + highlightJapaneseTokens(line) + '</span>')
+      .join('') +
+    '</span>';
+}
+
 /* ═══════════════════════════════════════════
    抽屉菜单
    ═══════════════════════════════════════════ */
@@ -511,7 +580,7 @@ function renderHome() {
   container.innerHTML = '';
   const cleared = getClearedSet();
   const practiceBadge = $('homePracticeBadge');
-  if (practiceBadge) practiceBadge.textContent = t('home_practice_badge', practiceDecks.length);
+  if (practiceBadge) practiceBadge.textContent = t('home_practice_badge', practiceDomains.length);
 
   journeys.forEach((j, idx) => {
     const range = journeyLevelRange(j.id);
@@ -555,20 +624,29 @@ function getPracticePrefs() {
     !state.practice.lastResultByDeck ||
     !state.practice.sessionBestByDeck ||
     !state.practice.lastSessionResultByDeck ||
+    !state.practice.moduleProgress ||
     !Number.isFinite(state.practice.totalCoins)
   ) {
     const normalized = {
-      currentDeckId: state.practice?.currentDeckId || 'smart-calc',
+      currentDeckId: state.practice?.currentDeckId || 'rounding-sum',
+      currentDomainId: state.practice?.currentDomainId || 'number-sense',
+      currentModuleId: state.practice?.currentModuleId || 'rounding-sum',
+      currentStageId: state.practice?.currentStageId || 'train',
       bestByDeck: state.practice?.bestByDeck || {},
       lastResultByDeck: state.practice?.lastResultByDeck || {},
       sessionBestByDeck: state.practice?.sessionBestByDeck || {},
       lastSessionResultByDeck: state.practice?.lastSessionResultByDeck || {},
+      moduleProgress: state.practice?.moduleProgress || {},
       totalCoins: Number.isFinite(state.practice?.totalCoins) ? state.practice.totalCoins : 0,
       completedSessions: Number.isFinite(state.practice?.completedSessions) ? state.practice.completedSessions : 0,
     };
     updateState('practice', normalized);
     return normalized;
   }
+  if (!state.practice.currentDomainId) state.practice.currentDomainId = 'number-sense';
+  if (!state.practice.currentModuleId) state.practice.currentModuleId = 'rounding-sum';
+  if (!state.practice.currentStageId) state.practice.currentStageId = 'train';
+  if (!state.practice.moduleProgress) state.practice.moduleProgress = {};
   return state.practice;
 }
 
@@ -586,9 +664,14 @@ function practiceElapsedMs() {
 function updatePracticeTimerPill() {
   const pill = $('practiceTimerPill');
   if (!pill) return;
-  pill.textContent = practiceState.mode === 'session'
-    ? t('practice_timer', formatElapsed(practiceElapsedMs()))
-    : t('practice_timer_idle');
+  if (practiceState.mode === 'session') {
+    const stage = getPracticeStage(practiceState.moduleId, practiceState.stageId);
+    pill.textContent = stage.timed
+      ? t('practice_timer', formatElapsed(practiceElapsedMs()))
+      : t('practice_timer_learning');
+  } else {
+    pill.textContent = t('practice_timer_idle');
+  }
 }
 
 function updatePracticeCoinPill() {
@@ -632,20 +715,69 @@ function savePracticeResult(deckId, result, sessionCoins = 0) {
   return false;
 }
 
+function practiceProgressKey(moduleId, stageId) {
+  return `${moduleId}:${stageId}`;
+}
+
+function savePracticeStageResult(moduleId, stageId, result, sessionCoins = 0, shouldBankCoins = true) {
+  const prefs = getPracticePrefs();
+  const key = practiceProgressKey(moduleId, stageId);
+  const snapshot = {
+    tier: result.tier,
+    title: result.title,
+    comment: result.comment,
+    elapsedMs: result.elapsedMs,
+    points: result.points || 0,
+    at: Date.now(),
+  };
+  const current = prefs.moduleProgress?.[key] || {};
+  const best = current.best;
+  const isBest = !best || (result.elapsedMs || 0) < (best.elapsedMs ?? Infinity);
+  const nextProgress = {
+    ...(prefs.moduleProgress || {}),
+    [key]: {
+      last: snapshot,
+      best: isBest ? snapshot : best,
+    },
+  };
+  updateState('practice', {
+    ...prefs,
+    moduleProgress: nextProgress,
+    totalCoins: (prefs.totalCoins || 0) + (shouldBankCoins ? sessionCoins : 0),
+    completedSessions: (prefs.completedSessions || 0) + 1,
+  });
+  return isBest;
+}
+
 function makePracticeSessionResult(elapsedMs, coins) {
+  const total = practiceState.totalQuestions || PRACTICE_SESSION_SIZE;
+  const stage = getPracticeStage(practiceState.moduleId, practiceState.stageId);
+  const isTimed = Boolean(stage.timed);
   return {
     correct: true,
     tier: 'session',
-    title: {
-      zh: '完成一局',
-      ja: 'セット完了',
-      en: 'Session Complete',
-    },
-    comment: {
-      zh: `完成 ${PRACTICE_SESSION_SIZE} 题，本局硬币已经倒进硬币罐。`,
-      ja: `${PRACTICE_SESSION_SIZE} 問を終えました。このセットのコインをコインびんに入れました。`,
-      en: `Finished ${PRACTICE_SESSION_SIZE} problems. The pouch coins went into the jar.`,
-    },
+    title: isTimed
+      ? {
+        zh: '完成一局',
+        ja: 'セット完了',
+        en: 'Session Complete',
+      }
+      : {
+        zh: '找感觉完成',
+        ja: '感じをつかんだね',
+        en: 'Pattern Round Complete',
+      },
+    comment: isTimed
+      ? {
+        zh: `完成 ${total} 题，本局硬币已经倒进硬币罐。`,
+        ja: `${total} 問を終えました。このセットのコインをコインびんに入れました。`,
+        en: `Finished ${total} problems. The pouch coins went into the jar.`,
+      }
+      : {
+        zh: `完成 ${total} 题观察练习。这一阶段不计时、不结算硬币。`,
+        ja: `${total} 問の見る練習が終わりました。この段階は時間もコインもありません。`,
+        en: `Finished ${total} observation problems. This stage has no timer or coins.`,
+      },
     elapsedMs,
     points: coins,
   };
@@ -660,12 +792,12 @@ function prefersReducedMotion() {
   return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 }
 
-function showPracticeCorrectAnimation(points) {
+function showPracticeCorrectAnimation(points, learning = false) {
   const card = $('practiceCard');
   if (!card) return;
   const reward = document.createElement('div');
   reward.className = 'practice-mini-reward';
-  reward.textContent = t('practice_correct_reward', points || 0);
+  reward.textContent = learning ? t('practice_correct_learning_reward') : t('practice_correct_reward', points || 0);
   card.appendChild(reward);
   setTimeout(() => reward.remove(), 1700);
 }
@@ -743,15 +875,15 @@ function practiceQuestionKey(question) {
   const expression = typeof question.expression === 'string'
     ? question.expression
     : JSON.stringify(question.expression || '');
-  return `${question.deckId || practiceState.deckId}:${question.id || expression}`;
+  return `${question.moduleId || practiceState.moduleId}:${question.stageId || practiceState.stageId}:${question.id || expression}`;
 }
 
-function createSessionPracticeQuestion(deckId) {
+function createSessionPracticeQuestion(moduleId, stageId) {
   let fallback = null;
   let fallbackDifferentFromLast = null;
   const lastKey = practiceState.sessionQuestionKeys[practiceState.sessionQuestionKeys.length - 1];
   for (let attempt = 0; attempt < 32; attempt++) {
-    const question = createPracticeQuestion(deckId);
+    const question = createPracticeStageQuestion(moduleId, stageId);
     const key = practiceQuestionKey(question);
     if (!fallback) fallback = { question, key };
     if (key !== lastKey && !fallbackDifferentFromLast) fallbackDifferentFromLast = { question, key };
@@ -768,19 +900,22 @@ function createSessionPracticeQuestion(deckId) {
     practiceState.sessionQuestionKeys.push(fallback.key);
     return fallback.question;
   }
-  return createPracticeQuestion(deckId);
+  return createPracticeStageQuestion(moduleId, stageId);
 }
 
-function showPracticeLobby() {
+function showPracticeLobby(mode = 'domain-lobby') {
   stopPracticeTimer();
   clearPracticeRewardAnimations();
-  practiceState.mode = 'lobby';
+  practiceState.mode = mode;
   practiceState.question = null;
   practiceState.feedback = null;
+  practiceState.selectedOptionIds = [];
   practiceState.sessionResult = null;
   practiceState.startedAt = 0;
   const prefs = getPracticePrefs();
-  const activeDeckId = prefs.currentDeckId || 'smart-calc';
+  practiceState.domainId = prefs.currentDomainId || practiceState.domainId || 'number-sense';
+  practiceState.moduleId = prefs.currentModuleId || practiceState.moduleId || 'rounding-sum';
+  practiceState.stageId = prefs.currentStageId || practiceState.stageId || 'train';
 
   if ($('practiceLobby')) $('practiceLobby').style.display = '';
   if ($('practiceDeckStrip')) $('practiceDeckStrip').style.display = 'none';
@@ -789,10 +924,76 @@ function showPracticeLobby() {
   $('practiceSubtitle').textContent = t('practice_lobby_subtitle', PRACTICE_SESSION_SIZE);
   updatePracticeTimerPill();
   updatePracticeCoinPill();
-  renderPracticeLobby(activeDeckId);
+  renderPracticeLobby();
 }
 
-function renderPracticeLobby(activeDeckId) {
+function renderPracticeBreadcrumb(lobby) {
+  const domain = getPracticeDomain(practiceState.domainId);
+  const module = getPracticeModule(practiceState.moduleId);
+  const crumbs = document.createElement('div');
+  crumbs.className = 'practice-breadcrumb';
+  const domainBtn = document.createElement('button');
+  domainBtn.type = 'button';
+  domainBtn.textContent = t('practice_breadcrumb_domains');
+  domainBtn.onclick = () => showPracticeLobby('domain-lobby');
+  crumbs.appendChild(domainBtn);
+  if (practiceState.mode === 'stage-lobby' || practiceState.mode === 'module-lobby') {
+    const domainCrumb = document.createElement('button');
+    domainCrumb.type = 'button';
+    domainCrumb.textContent = domain.icon + ' ' + lt(domain.name);
+    domainCrumb.onclick = () => showPracticeLobby('module-lobby');
+    crumbs.appendChild(domainCrumb);
+  }
+  if (practiceState.mode === 'stage-lobby') {
+    const moduleCrumb = document.createElement('span');
+    moduleCrumb.textContent = module.icon + ' ' + lt(module.name);
+    crumbs.appendChild(moduleCrumb);
+  }
+  lobby.appendChild(crumbs);
+}
+
+function stageProgressFor(moduleId, stageId) {
+  return getPracticePrefs().moduleProgress?.[practiceProgressKey(moduleId, stageId)] || {};
+}
+
+function renderPracticeCardButton({ className, icon, title, desc, meta, cta, active, onclick, dataset = {} }) {
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = className + (active ? ' active' : '');
+  Object.entries(dataset).forEach(([key, value]) => { card.dataset[key] = value; });
+  card.innerHTML =
+    '<span class="practice-deck-card-icon">' + icon + '</span>' +
+    '<span class="practice-deck-card-main">' +
+      '<strong>' + title + '</strong>' +
+      '<span>' + desc + '</span>' +
+    '</span>' +
+    '<span class="practice-deck-card-meta">' + meta + '</span>' +
+    '<span class="practice-deck-card-cta">' + cta + '</span>';
+  card.onclick = onclick;
+  return card;
+}
+
+function selectPracticeDomain(domainId) {
+  practiceState.domainId = domainId;
+  const domain = getPracticeDomain(domainId);
+  practiceState.moduleId = domain.modules[0]?.id || practiceState.moduleId;
+  updateState('practice.currentDomainId', domainId);
+  updateState('practice.currentModuleId', practiceState.moduleId);
+  showPracticeLobby('module-lobby');
+}
+
+function selectPracticeModule(moduleId) {
+  const module = getPracticeModule(moduleId);
+  practiceState.domainId = module.domainId;
+  practiceState.moduleId = module.id;
+  practiceState.stageId = 'sense';
+  updateState('practice.currentDomainId', module.domainId);
+  updateState('practice.currentModuleId', module.id);
+  updateState('practice.currentStageId', practiceState.stageId);
+  showPracticeLobby('stage-lobby');
+}
+
+function renderPracticeLobby() {
   const lobby = $('practiceLobby');
   if (!lobby) return;
   const prefs = getPracticePrefs();
@@ -805,67 +1006,183 @@ function renderPracticeLobby(activeDeckId) {
     '<span>' + t('practice_lobby_rule_body', PRACTICE_SESSION_SIZE) + '</span>';
   lobby.appendChild(summary);
 
+  if (practiceState.mode !== 'domain-lobby') renderPracticeBreadcrumb(lobby);
+
   const grid = document.createElement('div');
   grid.className = 'practice-deck-grid';
-  practiceDecks.forEach((deck) => {
-    const best = prefs.sessionBestByDeck?.[deck.id];
-    const last = prefs.lastSessionResultByDeck?.[deck.id];
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'practice-deck-card' + (deck.id === activeDeckId ? ' active' : '');
-    card.dataset.deckId = deck.id;
-    card.innerHTML =
-      '<span class="practice-deck-card-icon">' + deck.icon + '</span>' +
-      '<span class="practice-deck-card-main">' +
-        '<strong>' + lt(deck.name) + '</strong>' +
-        '<span>' + lt(deck.desc) + '</span>' +
-      '</span>' +
-      '<span class="practice-deck-card-meta">' +
-        (best ? t('practice_card_best', formatElapsed(best.elapsedMs)) : t('practice_card_new')) +
-        (last ? ' · ' + t('practice_card_last_coins', last.points || 0) : '') +
-      '</span>' +
-      '<span class="practice-deck-card-cta">' + t('practice_start_session', PRACTICE_SESSION_SIZE) + '</span>';
-    card.onclick = () => startPracticeSession(deck.id);
-    grid.appendChild(card);
-  });
+
+  if (practiceState.mode === 'domain-lobby') {
+    practiceDomains.forEach((domain) => {
+      const modulesCount = domain.modules.length;
+      grid.appendChild(renderPracticeCardButton({
+        className: 'practice-deck-card practice-domain-card',
+        icon: domain.icon,
+        title: lt(domain.name),
+        desc: lt(domain.desc),
+        meta: t('practice_domain_meta', modulesCount),
+        cta: t('practice_open_domain'),
+        active: domain.id === prefs.currentDomainId,
+        dataset: { domainId: domain.id },
+        onclick: () => selectPracticeDomain(domain.id),
+      }));
+    });
+  } else if (practiceState.mode === 'module-lobby') {
+    const domain = getPracticeDomain(practiceState.domainId);
+    domain.modules.forEach((module) => {
+      const completed = module.stages.filter((stage) => stageProgressFor(module.id, stage.id).last).length;
+      grid.appendChild(renderPracticeCardButton({
+        className: 'practice-deck-card practice-module-card',
+        icon: module.icon,
+        title: lt(module.name),
+        desc: lt(module.desc),
+        meta: t('practice_module_meta', completed, module.stages.length),
+        cta: t('practice_open_module'),
+        active: module.id === prefs.currentModuleId,
+        dataset: { moduleId: module.id },
+        onclick: () => selectPracticeModule(module.id),
+      }));
+    });
+  } else {
+    const module = getPracticeModule(practiceState.moduleId);
+    module.stages.forEach((stage) => {
+      const progress = stageProgressFor(module.id, stage.id);
+      const last = progress.last;
+      const best = progress.best;
+      grid.appendChild(renderPracticeCardButton({
+        className: 'practice-deck-card practice-stage-card',
+        icon: stage.timed ? '🪙' : '👀',
+        title: lt(stage.name),
+        desc: lt(stage.goal || stage.desc),
+        meta: best
+          ? t('practice_stage_done', formatElapsed(best.elapsedMs || 0), best.points || 0)
+          : t('practice_stage_new'),
+        cta: stage.timed
+          ? t('practice_start_session', stage.sessionSize || PRACTICE_SESSION_SIZE)
+          : t('practice_start_learning', stage.sessionSize || PRACTICE_SESSION_SIZE),
+        active: stage.id === prefs.currentStageId,
+        dataset: { moduleId: module.id, stageId: stage.id },
+        onclick: () => startPracticeSession(module.id, stage.id),
+      }));
+      if (last) {
+        grid.lastChild.title = lt(last.title || {}) || '';
+      }
+    });
+  }
   lobby.appendChild(grid);
+}
+
+function isPracticeChoiceQuestion(question = practiceState.question) {
+  return Boolean(question && (question.mode || 'number-input') !== 'number-input');
+}
+
+function selectedChoiceLimit(question) {
+  if (!question) return Infinity;
+  if (question.mode === 'pair-choice') return 2;
+  if (question.mode === 'single-choice' || question.mode === 'route-choice') return 1;
+  return Infinity;
+}
+
+function togglePracticeOption(optionId) {
+  const question = practiceState.question;
+  if (!isPracticeChoiceQuestion(question) || practiceState.feedback?.correct) return;
+  const id = String(optionId);
+  const current = practiceState.selectedOptionIds || [];
+  const selected = current.includes(id);
+  if (question.mode === 'single-choice' || question.mode === 'route-choice') {
+    practiceState.selectedOptionIds = selected ? [] : [id];
+  } else if (selected) {
+    practiceState.selectedOptionIds = current.filter((item) => item !== id);
+  } else {
+    const limit = selectedChoiceLimit(question);
+    practiceState.selectedOptionIds = limit === Infinity
+      ? [...current, id]
+      : [...current.slice(Math.max(0, current.length - limit + 1)), id];
+  }
+  renderPracticeOptions(question);
+}
+
+function renderPracticeOptions(question) {
+  const optionsBox = $('practiceOptions');
+  if (!optionsBox) return;
+  optionsBox.innerHTML = '';
+  const answerBlock = $('practiceAnswerBlock');
+  if (!isPracticeChoiceQuestion(question)) {
+    optionsBox.style.display = 'none';
+    if (answerBlock) answerBlock.style.display = '';
+    return;
+  }
+  optionsBox.style.display = '';
+  if (answerBlock) answerBlock.style.display = 'none';
+  const prompt = document.createElement('div');
+  prompt.className = 'practice-choice-label';
+  setReadableText(prompt, lt(question.prompt) || t('practice_choice_label'));
+  optionsBox.appendChild(prompt);
+  const list = document.createElement('div');
+  list.className = 'practice-option-grid';
+  (question.options || []).forEach((option) => {
+    const selected = practiceState.selectedOptionIds.includes(String(option.id));
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'practice-option' + (selected ? ' selected' : '');
+    button.dataset.optionId = String(option.id);
+    button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    button.disabled = Boolean(practiceState.feedback?.correct);
+    button.innerHTML =
+      '<span class="practice-option-mark">' + (selected ? '✓' : '') + '</span>' +
+      '<span class="practice-option-text"></span>';
+    setReadableText(button.querySelector('.practice-option-text'), lt(option.text));
+    button.onclick = () => togglePracticeOption(option.id);
+    list.appendChild(button);
+  });
+  optionsBox.appendChild(list);
 }
 
 function renderPractice() {
   if (gameState.mode !== 'practice') return;
-  if (practiceState.mode === 'lobby' || !practiceState.question) {
-    showPracticeLobby();
+  if ((practiceState.mode !== 'session' && practiceState.mode !== 'complete') || !practiceState.question) {
+    showPracticeLobby(practiceState.mode?.endsWith('-lobby') ? practiceState.mode : 'domain-lobby');
     return;
   }
-  const deck = practiceState.question.deck || practiceDecks[0];
-  const prefs = getPracticePrefs();
-  const best = prefs.sessionBestByDeck[deck.id];
-  const last = prefs.lastSessionResultByDeck[deck.id];
+  const question = practiceState.question;
+  const module = question.module || getPracticeModule(practiceState.moduleId);
+  const domain = question.domain || getPracticeDomain(module.domainId);
+  const stage = question.stage || getPracticeStage(module.id, practiceState.stageId);
+  const progress = stageProgressFor(module.id, stage.id);
+  const best = progress.best;
+  const last = progress.last;
+  const isTimedStage = Boolean(stage.timed);
 
   if ($('practiceLobby')) $('practiceLobby').style.display = 'none';
   if ($('practiceDeckStrip')) {
     $('practiceDeckStrip').style.display = '';
-    $('practiceDeckStrip').textContent = t(
-      'practice_session_rule',
-      practiceState.completedQuestions,
-      practiceState.totalQuestions,
-      practiceState.pendingCoins,
-    );
+    $('practiceDeckStrip').textContent = isTimedStage
+      ? t(
+        'practice_session_rule',
+        practiceState.completedQuestions,
+        practiceState.totalQuestions,
+        practiceState.pendingCoins,
+      )
+      : t('practice_session_rule_learning', practiceState.completedQuestions, practiceState.totalQuestions);
   }
   if ($('practiceCard')) $('practiceCard').style.display = '';
-  $('practiceTitle').textContent = deck.icon + ' ' + lt(deck.name);
-  $('practiceSubtitle').textContent = lt(deck.desc);
-  $('practiceExpression').textContent = lt(practiceState.question.expression);
-  $('practicePoints').textContent = t(
-    'practice_points',
-    practiceState.question.points || 10,
-    practiceState.questionIndex,
-    practiceState.totalQuestions,
-  );
-  $('practiceHintText').textContent = lt(practiceState.question.hint);
-  $('practiceBestTime').textContent = best ? formatElapsed(best.elapsedMs) : t('practice_none');
+  $('practiceTitle').textContent = domain.icon + ' ' + lt(domain.name);
+  $('practiceSubtitle').textContent = `${lt(module.name)} · ${lt(stage.name)}`;
+  setReadableText($('practiceExpression'), lt(question.expression));
+  if ($('practicePrompt')) {
+    const promptText = lt(question.prompt);
+    $('practicePrompt').style.display = promptText ? '' : 'none';
+    if (promptText) setReadableText($('practicePrompt'), promptText);
+  }
+  $('practicePoints').textContent = isTimedStage
+    ? t('practice_points', question.points || 10, practiceState.questionIndex, practiceState.totalQuestions)
+    : t('practice_learning_points', practiceState.questionIndex, practiceState.totalQuestions);
+  setReadableText($('practiceHintText'), lt(question.hint));
+  $('practiceBestTime').textContent = best
+    ? (isTimedStage ? formatElapsed(best.elapsedMs) : t('practice_stage_done_short'))
+    : t('practice_none');
   $('practiceLastRating').textContent = last ? lt(last.title) : t('practice_none');
   $('practiceAnswer').placeholder = t('practice_answer_placeholder');
+  renderPracticeOptions(question);
   updatePracticeTimerPill();
   updatePracticeCoinPill();
 
@@ -880,6 +1197,7 @@ function renderPractice() {
   $('practiceSubmit').disabled = !!feedback?.correct;
   $('practiceNext').style.display = feedback?.correct ? '' : 'none';
   $('practiceNext').textContent = isComplete ? t('practice_back_to_lobby') : t('practice_next_problem');
+  if (isPracticeChoiceQuestion(question)) renderPracticeOptions(question);
 
   if (!feedback) {
     feedbackBox.style.display = 'none';
@@ -895,21 +1213,27 @@ function renderPractice() {
   if (feedback.correct) {
     feedbackBox.classList.remove('bad');
     feedbackBadge.textContent = lt(feedback.title);
-    feedbackText.textContent = isComplete
-      ? t(
+    if (isComplete && isTimedStage) {
+      feedbackText.textContent = t(
         'practice_session_complete_text',
         formatElapsed(feedback.elapsedMs),
         feedback.points || 0,
         getPracticePrefs().totalCoins || 0,
-      ) + (feedback.isBest ? ' ' + t('practice_new_best') : '')
-      : t('practice_question_bank_pending', feedback.points || 0, practiceState.pendingCoins);
+      ) + (feedback.isBest ? ' ' + t('practice_new_best') : '');
+    } else if (isComplete) {
+      feedbackText.textContent = t('practice_learning_complete_text', practiceState.totalQuestions);
+    } else if (isTimedStage) {
+      feedbackText.textContent = t('practice_question_bank_pending', feedback.points || 0, practiceState.pendingCoins);
+    } else {
+      feedbackText.textContent = t('practice_question_learning_done');
+    }
     strategy.style.display = '';
-    strategy.textContent = t('practice_strategy_label') + '：' + lt(practiceState.question.strategy);
+    strategy.textContent = t('practice_strategy_label') + '：' + lt(question.strategy);
   } else {
     feedbackBox.classList.add('bad');
     feedbackBadge.textContent = t('practice_retry_title');
     const key = feedback.reason === 'empty'
-      ? 'practice_retry_empty'
+      ? (isPracticeChoiceQuestion(question) ? 'practice_retry_choice_empty' : 'practice_retry_empty')
       : feedback.reason === 'invalid'
         ? 'practice_retry_invalid'
         : 'practice_retry_wrong';
@@ -919,36 +1243,48 @@ function renderPractice() {
   }
 }
 
-function startPracticeSession(deckId = 'smart-calc') {
+function startPracticeSession(moduleId = 'rounding-sum', stageId = 'train') {
   clearPracticeRewardAnimations();
-  practiceState.deckId = deckId;
+  const module = getPracticeModule(moduleId);
+  const domain = getPracticeDomain(module.domainId);
+  const stage = getPracticeStage(module.id, stageId);
+  practiceState.domainId = domain.id;
+  practiceState.moduleId = module.id;
+  practiceState.stageId = stage.id;
+  practiceState.deckId = module.deckId || module.id;
   practiceState.mode = 'session';
-  practiceState.totalQuestions = PRACTICE_SESSION_SIZE;
+  practiceState.totalQuestions = stage.sessionSize || PRACTICE_SESSION_SIZE;
   practiceState.questionIndex = 1;
   practiceState.completedQuestions = 0;
   practiceState.pendingCoins = 0;
   practiceState.sessionResult = null;
   practiceState.sessionQuestionKeys = [];
   practiceState.feedback = null;
-  practiceState.startedAt = Date.now();
-  practiceState.question = createSessionPracticeQuestion(deckId);
-  updateState('practice.currentDeckId', deckId);
+  practiceState.selectedOptionIds = [];
+  practiceState.startedAt = stage.timed ? Date.now() : 0;
+  practiceState.question = createSessionPracticeQuestion(module.id, stage.id);
+  updateState('practice.currentDomainId', domain.id);
+  updateState('practice.currentModuleId', module.id);
+  updateState('practice.currentStageId', stage.id);
+  updateState('practice.currentDeckId', practiceState.deckId);
   stopPracticeTimer();
-  practiceState.timerId = setInterval(updatePracticeTimerPill, 250);
+  if (stage.timed) practiceState.timerId = setInterval(updatePracticeTimerPill, 250);
   preparePracticeInput();
   renderPractice();
 }
 
 function preparePracticeInput() {
+  practiceState.selectedOptionIds = [];
   if ($('practiceAnswer')) {
     $('practiceAnswer').value = '';
     $('practiceAnswer').disabled = false;
   }
+  if ($('practiceOptions')) $('practiceOptions').innerHTML = '';
   if ($('practiceSubmit')) $('practiceSubmit').disabled = false;
   if ($('practiceNext')) $('practiceNext').style.display = 'none';
 }
 
-function showPractice(deckId = getPracticePrefs().currentDeckId || 'smart-calc') {
+function showPractice() {
   gameState.mode = 'practice';
   gameState.journeyId = null;
   removeNextArrow();
@@ -958,8 +1294,12 @@ function showPractice(deckId = getPracticePrefs().currentDeckId || 'smart-calc')
   if ($('homeView')) $('homeView').style.display = 'none';
   if ($('appView')) $('appView').style.display = 'none';
   if ($('practiceView')) $('practiceView').style.display = '';
-  practiceState.deckId = deckId;
-  showPracticeLobby();
+  const prefs = getPracticePrefs();
+  practiceState.domainId = prefs.currentDomainId || 'number-sense';
+  practiceState.moduleId = prefs.currentModuleId || 'rounding-sum';
+  practiceState.stageId = prefs.currentStageId || 'train';
+  practiceState.deckId = prefs.currentDeckId || 'rounding-sum';
+  showPracticeLobby('domain-lobby');
 }
 
 function advancePracticeQuestion() {
@@ -970,7 +1310,7 @@ function advancePracticeQuestion() {
   if (!practiceState.feedback?.correct) return;
   clearPracticeRewardAnimations();
   practiceState.questionIndex += 1;
-  practiceState.question = createSessionPracticeQuestion(practiceState.deckId);
+  practiceState.question = createSessionPracticeQuestion(practiceState.moduleId, practiceState.stageId);
   practiceState.feedback = null;
   preparePracticeInput();
   renderPractice();
@@ -978,19 +1318,30 @@ function advancePracticeQuestion() {
 
 function submitPracticeAnswer() {
   if (practiceState.mode !== 'session' || !practiceState.question || practiceState.feedback?.correct) return;
-  const result = evaluatePracticeResult(practiceState.question, $('practiceAnswer').value, practiceElapsedMs());
+  const stage = getPracticeStage(practiceState.moduleId, practiceState.stageId);
+  const answer = isPracticeChoiceQuestion(practiceState.question)
+    ? practiceState.selectedOptionIds
+    : $('practiceAnswer').value;
+  const result = evaluatePracticeResult(practiceState.question, answer, practiceElapsedMs());
   if (result.correct) {
     practiceState.completedQuestions += 1;
     practiceState.pendingCoins += result.points || 0;
     if (practiceState.completedQuestions >= practiceState.totalQuestions) {
       stopPracticeTimer();
       const sessionResult = makePracticeSessionResult(practiceElapsedMs(), practiceState.pendingCoins);
-      sessionResult.isBest = savePracticeResult(practiceState.deckId, sessionResult, practiceState.pendingCoins);
+      const shouldBankCoins = Boolean(stage.timed && practiceState.pendingCoins > 0);
+      sessionResult.isBest = savePracticeStageResult(
+        practiceState.moduleId,
+        practiceState.stageId,
+        sessionResult,
+        practiceState.pendingCoins,
+        shouldBankCoins,
+      );
       practiceState.mode = 'complete';
       practiceState.feedback = sessionResult;
       renderPractice();
       $('practiceNext')?.focus({ preventScroll: true });
-      showPracticeCompletionAnimation(sessionResult.points || 0);
+      if (shouldBankCoins) showPracticeCompletionAnimation(sessionResult.points || 0);
       return;
     }
   }
@@ -998,7 +1349,8 @@ function submitPracticeAnswer() {
   renderPractice();
   if (result.correct) {
     $('practiceNext')?.focus({ preventScroll: true });
-    showPracticeCorrectAnimation(result.points || 0);
+    if (stage.timed && result.points > 0) showPracticeCorrectAnimation(result.points || 0);
+    else if (!stage.timed) showPracticeCorrectAnimation(0, true);
   } else {
     $('practiceFeedback')?.focus({ preventScroll: true });
   }
@@ -1045,13 +1397,13 @@ function showGate(gate) {
   overlay.style.display = '';
   overlay.classList.remove('hide');
   $('gateIcon').textContent = gate.type === 'predict' ? '🤔' : '🔍';
-  $('gateQuestion').textContent = lt(gate.question);
+  setReadableText($('gateQuestion'), lt(gate.question));
   const optBox = $('gateOptions');
   optBox.innerHTML = '';
   gate.options.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'gate-opt';
-    btn.textContent = lt(opt.text);
+    setReadableText(btn, lt(opt.text));
     btn.onclick = () => onGateAnswer(gate, i, btn);
     optBox.appendChild(btn);
   });
@@ -2466,7 +2818,7 @@ function render() {
   const storyCard = $('storyCard');
   const storyText = $('storyText');
   if (scene.story) {
-    storyText.textContent = resolveText(scene.story);
+    setReadableText(storyText, resolveText(scene.story));
     storyCard.style.display = '';
     /* 每次切关 / 重渲染都重新触发 fadeIn 动画 */
     storyCard.style.animation = 'none';
@@ -2475,6 +2827,7 @@ function render() {
   } else {
     storyCard.style.display = 'none';
     storyText.textContent = '';
+    storyText.classList.remove('ja-readable-host');
   }
 
   if (gameState.mode === 'level') {

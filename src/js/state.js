@@ -15,11 +15,15 @@ function defaultState() {
     progress: { clearedLevelIds: [], currentLevelId: '' },
     learning: { seenOnboarding: false, lastPlayedAt: null },
     practice: {
-      currentDeckId: 'smart-calc',
+      currentDeckId: 'rounding-sum',
+      currentDomainId: 'number-sense',
+      currentModuleId: 'rounding-sum',
+      currentStageId: 'train',
       bestByDeck: {},
       lastResultByDeck: {},
       sessionBestByDeck: {},
       lastSessionResultByDeck: {},
+      moduleProgress: {},
       totalCoins: 0,
       completedSessions: 0,
     },
@@ -88,10 +92,14 @@ export function loadState() {
       }
       if (!_state.profile.theme) _state.profile.theme = def.profile.theme;
       if (!_state.practice.currentDeckId) _state.practice.currentDeckId = def.practice.currentDeckId;
+      if (!_state.practice.currentDomainId) _state.practice.currentDomainId = def.practice.currentDomainId;
+      if (!_state.practice.currentModuleId) _state.practice.currentModuleId = def.practice.currentModuleId;
+      if (!_state.practice.currentStageId) _state.practice.currentStageId = def.practice.currentStageId;
       if (!_state.practice.bestByDeck) _state.practice.bestByDeck = {};
       if (!_state.practice.lastResultByDeck) _state.practice.lastResultByDeck = {};
       if (!_state.practice.sessionBestByDeck) _state.practice.sessionBestByDeck = {};
       if (!_state.practice.lastSessionResultByDeck) _state.practice.lastSessionResultByDeck = {};
+      if (!_state.practice.moduleProgress) _state.practice.moduleProgress = {};
       if (!Number.isFinite(_state.practice.totalCoins)) _state.practice.totalCoins = 0;
       if (!Number.isFinite(_state.practice.completedSessions)) _state.practice.completedSessions = 0;
       // v1→v2 迁移：数字索引 → 稳定字符串 ID

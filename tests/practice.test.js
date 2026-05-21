@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
+  practiceDomains,
   practiceDecks,
   createPracticeQuestion,
+  createPracticeStageQuestion,
   parsePracticeAnswer,
   evaluatePracticeResult,
   formatElapsed,
@@ -74,6 +76,64 @@ describe('practice deck', () => {
     });
   });
 
+  it('defines domain/module/stage data with localized copy', () => {
+    expect(practiceDomains.map((domain) => domain.id)).toEqual([
+      'number-sense',
+      'operation-relations',
+      'multiplicative-structure',
+      'factor-multiple-sense',
+      'quantity-sense',
+      'mixed-challenge',
+    ]);
+    practiceDomains.forEach((domain) => {
+      expect(domain.name.zh).toBeTruthy();
+      expect(domain.name.ja).toBeTruthy();
+      expect(domain.name.en).toBeTruthy();
+      expect(domain.desc.zh).toBeTruthy();
+      expect(domain.modules.length).toBeGreaterThan(0);
+      domain.modules.forEach((module) => {
+        expect(module.domainId).toBe(domain.id);
+        expect(module.name.zh).toBeTruthy();
+        expect(module.name.ja).toBeTruthy();
+        expect(module.name.en).toBeTruthy();
+        expect(module.desc.zh).toBeTruthy();
+        expect(module.stages.map((stage) => stage.id)).toEqual(['sense', 'relation', 'train', 'challenge']);
+        module.stages.forEach((stage) => {
+          expect(stage.name.zh).toBeTruthy();
+          expect(stage.name.ja).toBeTruthy();
+          expect(stage.name.en).toBeTruthy();
+          expect(stage.desc.zh).toBeTruthy();
+          expect(stage.goal.zh).toBeTruthy();
+          expect(stage.sessionSize).toBe(10);
+        });
+      });
+    });
+  });
+
+  it('creates a valid stage question for every module stage', () => {
+    practiceDomains.flatMap((domain) => domain.modules).forEach((module) => {
+      module.stages.forEach((stage) => {
+        const question = createPracticeStageQuestion(module.id, stage.id, { random: () => 0.2 });
+        expect(question.moduleId).toBe(module.id);
+        expect(question.domainId).toBe(module.domainId);
+        expect(question.stageId).toBe(stage.id);
+        expect(question.expression).toBeTruthy();
+        expect(question.strategy.zh).toBeTruthy();
+        expect(question.strategy.ja).toBeTruthy();
+        expect(question.strategy.en).toBeTruthy();
+        if (stage.timed) {
+          expect(question.mode).toBe('number-input');
+          expect(Number.isInteger(question.answer)).toBe(true);
+          expect(question.points).toBeGreaterThan(0);
+        } else {
+          expect(['single-choice', 'multi-select', 'pair-choice', 'route-choice']).toContain(question.mode);
+          expect(question.options.length).toBeGreaterThan(1);
+          expect(question.points).toBe(0);
+        }
+      });
+    });
+  });
+
   it('uses visible friendly-number signals instead of opaque random numbers', () => {
     const expectations = [
       ['round-sum', /198|125|399|246|720|100|200|500/],
@@ -141,6 +201,16 @@ describe('practice evaluation', () => {
     });
     const result = evaluatePracticeResult(question, String(question.answer + 1), 18000);
     expect(result).toMatchObject({ correct: false, reason: 'wrong' });
+  });
+
+  it('evaluates single-choice and multi-select questions', () => {
+    const single = createPracticeStageQuestion('factor-multiple', 'relation', { random: () => 0.2 });
+    expect(evaluatePracticeResult(single, single.answer, 0)).toMatchObject({ correct: true, points: 0 });
+    expect(evaluatePracticeResult(single, 'factor', 0)).toMatchObject({ correct: false, reason: 'wrong' });
+
+    const multi = createPracticeStageQuestion('multiplicative-structure', 'sense', { random: () => 0.2 });
+    expect(evaluatePracticeResult(multi, [...multi.answer].reverse(), 0)).toMatchObject({ correct: true, points: 0 });
+    expect(evaluatePracticeResult(multi, multi.answer.slice(0, 1), 0)).toMatchObject({ correct: false, reason: 'wrong' });
   });
 
   it('formats elapsed time for seconds and minutes', () => {

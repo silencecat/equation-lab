@@ -180,6 +180,23 @@
     .story-text {
       flex: 1; min-width: 0;
     }
+    .ja-readable {
+      display: flex; flex-direction: column; gap: 4px;
+      line-height: 1.75;
+    }
+    .ja-story-line {
+      display: block;
+    }
+    .ja-token {
+      display: inline-block;
+      margin: 0 1px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--chapter-soft) 72%, white);
+      color: var(--chapter-ink);
+      font-weight: 900;
+      line-height: 1.55;
+    }
     @keyframes storyFadeIn {
       from { opacity: 0; transform: translateY(-8px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -1020,6 +1037,9 @@
       font-size: 16px; font-weight: 700; color: var(--brand);
       margin: 0 0 14px; line-height: 1.4;
     }
+    .gate-question .ja-readable {
+      align-items: center;
+    }
     .gate-options { display: flex; flex-direction: column; gap: 8px; }
     .gate-opt {
       border: 2px solid var(--border); border-radius: 12px;
@@ -1557,6 +1577,26 @@
     .practice-lobby-summary span {
       color: var(--story-text); font-size: 14px; line-height: 1.65;
     }
+    .practice-breadcrumb {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      color: var(--muted); font-size: 13px; font-weight: 800;
+    }
+    .practice-breadcrumb button,
+    .practice-breadcrumb span {
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 75%, white);
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: rgba(255,255,255,.8);
+      color: var(--chapter-ink);
+      font: inherit;
+    }
+    .practice-breadcrumb button {
+      cursor: pointer;
+    }
+    .practice-breadcrumb button:hover {
+      border-color: var(--chapter-accent);
+      background: color-mix(in srgb, var(--chapter-soft) 46%, white);
+    }
     .practice-deck-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1625,6 +1665,14 @@
       color: var(--text);
       word-break: break-word;
     }
+    .practice-prompt {
+      border-top: 1px dashed color-mix(in srgb, var(--chapter-border) 78%, white);
+      padding-top: 10px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--story-text);
+      font-weight: 800;
+    }
     .practice-hint {
       border: 1px dashed color-mix(in srgb, var(--chapter-border) 85%, white);
       border-radius: 16px; padding: 10px 12px;
@@ -1646,6 +1694,69 @@
       width: 100%; border-radius: 14px; border: 1px solid var(--line);
       padding: 14px 16px; font-size: 22px; font-weight: 700;
       background: rgba(255,255,255,.96); color: var(--text);
+    }
+    .practice-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .practice-choice-label {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--chapter-ink);
+    }
+    .practice-option-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .practice-option {
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 72%, white);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(255,255,255,.92);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 850;
+      line-height: 1.45;
+      transition: transform .14s ease, border-color .14s ease, background .14s ease;
+    }
+    .practice-option:hover {
+      transform: translateY(-1px);
+      border-color: var(--chapter-accent);
+      background: color-mix(in srgb, var(--chapter-soft) 38%, white);
+    }
+    .practice-option.selected {
+      border-color: var(--chapter-accent);
+      background: color-mix(in srgb, var(--chapter-soft) 58%, white);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chapter-accent) 28%, transparent);
+    }
+    .practice-option:disabled {
+      cursor: default;
+      transform: none;
+      opacity: .86;
+    }
+    .practice-option-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border: 1px solid color-mix(in srgb, var(--chapter-border) 80%, white);
+      background: #fff;
+      color: var(--chapter-accent);
+      font-weight: 950;
+    }
+    .practice-option.selected .practice-option-mark {
+      background: var(--chapter-accent);
+      color: #fff;
+      border-color: var(--chapter-accent);
     }
     .practice-actions {
       display: flex; gap: 10px; flex-wrap: wrap;
@@ -1985,6 +2096,7 @@
           <div id="practicePoints" class="practice-points"></div>
         </div>
         <div class="practice-expression" id="practiceExpression"></div>
+        <div class="practice-prompt" id="practicePrompt"></div>
       </div>
 
       <details class="practice-hint">
@@ -1992,7 +2104,9 @@
         <div id="practiceHintText"></div>
       </details>
 
-      <label class="practice-answer-block" for="practiceAnswer">
+      <div id="practiceOptions" class="practice-options" style="display:none"></div>
+
+      <label class="practice-answer-block" id="practiceAnswerBlock" for="practiceAnswer">
         <span data-i18n="practice_answer_label">答案</span>
         <input id="practiceAnswer" type="text" inputmode="numeric" spellcheck="false" />
       </label>

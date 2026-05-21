@@ -18,7 +18,7 @@ Equation Lab now has four clearly separated areas:
 
 - `Learning Map`: a game-like journey view that groups levels by learning goal
 - `Equation Quest`: guided levels for balance, inverse operations, fractions, brackets, and story problems
-- `Practice Zone`: focused calculation decks such as multiplicative structure, missing-number inverses, order of operations, unit conversion, averages, regrouping, factor spotting, common factors/multiples, and multiply/divide pairing
+- `Arithmetic Foundations`: a structured practice map for number sense, operation relationships, multiplicative structure, factors/multiples, quantities/units, and mixed challenges
 - `Playground`: free experimentation with custom equations and multiple solution paths
 
 The project is designed for children first, but it is also open to parents, teachers, and developers who want to improve the curriculum, wording, and interaction design.
@@ -30,8 +30,8 @@ The project is designed for children first, but it is also open to parents, teac
 - Apply `+`, `-`, `×`, and `÷` tools to both sides
 - Support integers, simple fractions, grouped expressions, and story problems
 - Use short "read before you move" gates to slow down blind symbol shuffling
-- Provide a separate smart-calculation practice area without turning the main quest into a generic worksheet site
-- Run practice decks as fixed-length sessions, banking local coins only after a full session is completed
+- Provide a separate arithmetic practice area without turning the main quest into a generic worksheet site
+- Let children first spot structures through choice-based stages, then use fixed-length 10-question sessions that bank local coins only after completion
 - Offer multilingual UI and curriculum text in Chinese, Japanese, and English
 - Run as a static website
 - Export a single-file offline version for families who just want to double-click and use it
@@ -46,7 +46,7 @@ You can use Equation Lab in two simple ways:
 What children can do:
 
 - Follow the learning map step by step
-- Practice mental calculation patterns through focused decks in a separate zone
+- Practice arithmetic foundations through skill domains, modules, and short 10-question sessions
 - Try their own equations in Playground mode
 - Compare different solution paths instead of memorizing one trick
 

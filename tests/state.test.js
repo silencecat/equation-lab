@@ -32,10 +32,14 @@ describe('state.js', () => {
       expect(s.profile.locale).toBe('zh');
       expect(s.progress.clearedLevelIds).toEqual([]);
       expect(s.learning.seenOnboarding).toBe(false);
-      expect(s.practice.currentDeckId).toBe('smart-calc');
+      expect(s.practice.currentDeckId).toBe('rounding-sum');
+      expect(s.practice.currentDomainId).toBe('number-sense');
+      expect(s.practice.currentModuleId).toBe('rounding-sum');
+      expect(s.practice.currentStageId).toBe('train');
       expect(s.practice.bestByDeck).toEqual({});
       expect(s.practice.sessionBestByDeck).toEqual({});
       expect(s.practice.lastSessionResultByDeck).toEqual({});
+      expect(s.practice.moduleProgress).toEqual({});
       expect(s.practice.totalCoins).toBe(0);
       expect(s.practice.completedSessions).toBe(0);
     });
@@ -168,6 +172,10 @@ describe('state.js', () => {
       expect(s.practice.bestByDeck['smart-calc'].elapsedMs).toBe(3200);
       expect(s.practice.sessionBestByDeck).toEqual({});
       expect(s.practice.lastSessionResultByDeck).toEqual({});
+      expect(s.practice.moduleProgress).toEqual({});
+      expect(s.practice.currentDomainId).toBe('number-sense');
+      expect(s.practice.currentModuleId).toBe('rounding-sum');
+      expect(s.practice.currentStageId).toBe('train');
     });
   });
 });
